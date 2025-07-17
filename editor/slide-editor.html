@@ -38,6 +38,12 @@
             margin-bottom: 15px;
         }
         
+        .sidebar-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
         .new-slide-btn {
             background: #4caf50;
             color: white;
@@ -46,7 +52,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
-            width: 100%;
+            flex: 1;
             transition: background 0.2s;
         }
         
@@ -54,9 +60,34 @@
             background: #5cbf60;
         }
         
+        .reorder-toggle {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
+            transition: background 0.2s;
+        }
+        
+        .reorder-toggle:hover {
+            background: #ffab00;
+        }
+        
+        .reorder-toggle.active {
+            background: #f44336;
+        }
+        
         .slide-list {
             list-style: none;
             flex: 1;
+            padding: 0;
+        }
+        
+        .slide-list.sortable {
+            cursor: move;
         }
         
         .slide-item {
@@ -67,6 +98,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
         }
         
         .slide-item:hover {
@@ -81,6 +113,24 @@
             content: '●';
             color: #ff9800;
             margin-left: 5px;
+        }
+        
+        .slide-item.dragging {
+            opacity: 0.5;
+            background: #2a4a6f;
+            z-index: 1000;
+        }
+        
+        .slide-item.drag-over {
+            background: #4a7ba7;
+            border-top: 2px solid #ff9800;
+        }
+        
+        .slide-item .slide-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .slide-item .slide-actions {
@@ -102,6 +152,27 @@
         .slide-action-btn:hover {
             background: rgba(255,255,255,0.1);
             color: white;
+        }
+        
+        .drag-handle {
+            cursor: grab;
+            padding: 5px;
+            color: #999;
+            display: none;
+        }
+        
+        .slide-list.sortable .drag-handle {
+            display: block;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        .slide-number {
+            font-size: 12px;
+            color: #999;
+            min-width: 20px;
         }
         
         /* メインエリア */
@@ -381,12 +452,47 @@
             background: #f8f9fa;
             border-bottom: 1px solid #e0e0e0;
             font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .edit-panel-tabs {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .edit-panel-tab {
+            padding: 6px 12px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .edit-panel-tab.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .edit-panel-tab:hover:not(.active) {
+            background: #dee2e6;
         }
         
         .edit-panel-content {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
+        }
+        
+        .edit-tab-content {
+            display: none;
+        }
+        
+        .edit-tab-content.active {
+            display: block;
         }
         
         .edit-field {
@@ -416,6 +522,121 @@
         .edit-field textarea:focus {
             outline: none;
             border-color: #4a7ba7;
+        }
+        
+        /* スタイル編集パネル */
+        .style-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #4a7ba7;
+        }
+        
+        .style-section h4 {
+            margin-bottom: 15px;
+            color: #1e3a5f;
+            font-size: 16px;
+        }
+        
+        .style-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .style-row label {
+            min-width: 80px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .style-row select,
+        .style-row input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .style-row input[type="color"] {
+            width: 40px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .style-row input[type="range"] {
+            flex: 1;
+        }
+        
+        .style-row .range-value {
+            min-width: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .color-swatch:hover {
+            border-color: #4a7ba7;
+            transform: scale(1.1);
+        }
+        
+        .color-swatch.selected {
+            border-color: #1e3a5f;
+            border-width: 3px;
+        }
+        
+        .style-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .style-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .style-btn.primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .style-btn.primary:hover {
+            background: #0056b3;
+        }
+        
+        .style-btn.secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .style-btn.secondary:hover {
+            background: #5a6268;
         }
         
         /* 選択可能な要素のオーバーレイ */
@@ -702,9 +923,14 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h2>📑 スライド一覧</h2>
-            <button class="new-slide-btn" onclick="showNewSlideModal()">
-                ➕ 新規スライド
-            </button>
+            <div class="sidebar-controls">
+                <button class="new-slide-btn" onclick="showNewSlideModal()">
+                    ➕ 新規
+                </button>
+                <button class="reorder-toggle" id="reorderToggle" onclick="toggleReorderMode()">
+                    🔀 並替
+                </button>
+            </div>
         </div>
         <ul class="slide-list" id="slideList">
             <!-- スライド一覧がここに表示される -->
@@ -758,10 +984,19 @@
             
             <div class="edit-panel" id="editPanel">
                 <div class="edit-panel-header">
-                    テキスト編集
+                    <span>編集パネル</span>
+                    <div class="edit-panel-tabs">
+                        <button class="edit-panel-tab active" onclick="switchEditTab('text')">テキスト</button>
+                        <button class="edit-panel-tab" onclick="switchEditTab('style')">スタイル</button>
+                    </div>
                 </div>
-                <div class="edit-panel-content" id="editPanelContent">
-                    <!-- 編集フィールドがここに表示される -->
+                <div class="edit-panel-content">
+                    <div class="edit-tab-content active" id="textEditTab">
+                        <!-- テキスト編集フィールドがここに表示される -->
+                    </div>
+                    <div class="edit-tab-content" id="styleEditTab">
+                        <!-- スタイル編集コントロールがここに表示される -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -823,11 +1058,15 @@
         let editMode = false;
         let layoutMode = false;
         let htmlEditorMode = false;
+        let reorderMode = false;
         let textElements = [];
         let currentProjectName = null;
         let selectedTemplate = 'html';
+        let currentEditTab = 'text';
         
-        // レイアウト編集用の変数
+        // ドラッグ&ドロップ関連
+        let draggedElement = null;
+        let draggedIndex = null;
         let selectedElement = null;
         let selectedOverlay = null;
         let isDragging = false;
@@ -852,6 +1091,7 @@
             // グローバル関数として登録
             window.toggleEditMode = toggleEditMode;
             window.toggleLayoutMode = toggleLayoutMode;
+            window.toggleReorderMode = toggleReorderMode;
             window.saveCurrentSlide = saveCurrentSlide;
             window.reloadCurrentSlide = reloadCurrentSlide;
             window.openPreview = openPreview;
@@ -859,7 +1099,13 @@
             window.hideNewSlideModal = hideNewSlideModal;
             window.createNewSlide = createNewSlide;
             window.switchPreviewTab = switchPreviewTab;
-            window.formatHtml = formatHtml;
+            window.switchEditTab = switchEditTab;
+            // スタイル関連のグローバル関数
+            window.selectColor = selectColor;
+            window.applyStyles = applyStyles;
+            window.resetStyles = resetStyles;
+            window.saveStyleTemplate = saveStyleTemplate;
+            window.loadStyleTemplate = loadStyleTemplate;
         }
         
         // HTMLエディターの設定
@@ -896,7 +1142,197 @@
             });
         }
         
-        // プレビュータブの表示制御
+        // 編集パネルのタブ切り替え
+        function switchEditTab(tab) {
+            const tabs = document.querySelectorAll('.edit-panel-tab');
+            const contents = document.querySelectorAll('.edit-tab-content');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'text') {
+                tabs[0].classList.add('active');
+                document.getElementById('textEditTab').classList.add('active');
+                currentEditTab = 'text';
+            } else if (tab === 'style') {
+                tabs[1].classList.add('active');
+                document.getElementById('styleEditTab').classList.add('active');
+                currentEditTab = 'style';
+                loadStyleEditor();
+            }
+        }
+        
+        // 並び替えモードの切り替え
+        function toggleReorderMode() {
+            reorderMode = !reorderMode;
+            const reorderBtn = document.getElementById('reorderToggle');
+            const slideList = document.getElementById('slideList');
+            
+            if (reorderMode) {
+                reorderBtn.classList.add('active');
+                reorderBtn.textContent = '✅ 完了';
+                slideList.classList.add('sortable');
+                enableDragAndDrop();
+                showToast('スライドをドラッグして並び替えできます', 'success');
+            } else {
+                reorderBtn.classList.remove('active');
+                reorderBtn.textContent = '🔀 並替';
+                slideList.classList.remove('sortable');
+                disableDragAndDrop();
+                showToast('並び替えモードを終了しました', 'success');
+            }
+        }
+        
+        // ドラッグ&ドロップを有効化
+        function enableDragAndDrop() {
+            const slideItems = document.querySelectorAll('.slide-item');
+            slideItems.forEach((item, index) => {
+                item.draggable = true;
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
+            });
+        }
+        
+        // ドラッグ&ドロップを無効化
+        function disableDragAndDrop() {
+            const slideItems = document.querySelectorAll('.slide-item');
+            slideItems.forEach(item => {
+                item.draggable = false;
+                item.removeEventListener('dragstart', handleDragStart);
+                item.removeEventListener('dragover', handleDragOver);
+                item.removeEventListener('drop', handleDrop);
+                item.removeEventListener('dragend', handleDragEnd);
+                item.classList.remove('dragging', 'drag-over');
+            });
+        }
+        
+        // ドラッグ開始
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            draggedIndex = Array.from(draggedElement.parentNode.children).indexOf(draggedElement);
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+        }
+        
+        // ドラッグオーバー
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            e.target.classList.add('drag-over');
+            return false;
+        }
+        
+        // ドロップ
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            const targetElement = e.target.closest('.slide-item');
+            if (targetElement && draggedElement && targetElement !== draggedElement) {
+                const targetIndex = Array.from(targetElement.parentNode.children).indexOf(targetElement);
+                reorderSlides(draggedIndex, targetIndex);
+            }
+            
+            return false;
+        }
+        
+        // ドラッグ終了
+        function handleDragEnd(e) {
+            const slideItems = document.querySelectorAll('.slide-item');
+            slideItems.forEach(item => {
+                item.classList.remove('dragging', 'drag-over');
+            });
+            draggedElement = null;
+            draggedIndex = null;
+        }
+        
+        // スライドの順序を変更
+        async function reorderSlides(fromIndex, toIndex) {
+            if (fromIndex === toIndex) return;
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}/slides`);
+                const data = await response.json();
+                const slides = data.slides;
+                
+                if (fromIndex < 0 || fromIndex >= slides.length || toIndex < 0 || toIndex >= slides.length) {
+                    throw new Error('無効なインデックス');
+                }
+                
+                // 一時的なファイル名を生成
+                const tempPrefix = 'temp_reorder_';
+                const renameOperations = [];
+                
+                // スライドを移動
+                const movedSlide = slides[fromIndex];
+                slides.splice(fromIndex, 1);
+                slides.splice(toIndex, 0, movedSlide);
+                
+                // リネーム操作を生成
+                for (let i = 0; i < slides.length; i++) {
+                    const currentName = slides[i];
+                    const newName = `slide-${padNumber(i + 1)}.html`;
+                    
+                    if (currentName !== newName) {
+                        renameOperations.push({
+                            from: currentName,
+                            to: newName,
+                            temp: `${tempPrefix}${i + 1}.html`
+                        });
+                    }
+                }
+                
+                // 一時ファイル名にリネーム
+                for (const op of renameOperations) {
+                    await fetch(`${API_URL}/slides/reorder`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            oldFilename: op.from,
+                            newFilename: op.temp
+                        })
+                    });
+                }
+                
+                // 最終的なファイル名にリネーム
+                for (const op of renameOperations) {
+                    await fetch(`${API_URL}/slides/reorder`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            oldFilename: op.temp,
+                            newFilename: op.to
+                        })
+                    });
+                }
+                
+                // 現在のスライドが変更された場合は更新
+                if (currentSlide) {
+                    const oldIndex = slides.findIndex(s => s === currentSlide);
+                    if (oldIndex !== -1) {
+                        currentSlide = `slide-${padNumber(oldIndex + 1)}.html`;
+                    }
+                }
+                
+                // スライド一覧を再読み込み
+                await loadSlideList();
+                showToast('スライドの順序を変更しました', 'success');
+                
+            } catch (error) {
+                console.error('スライド順序変更エラー:', error);
+                showToast('スライドの順序変更に失敗しました', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
         function updatePreviewTabsVisibility() {
             const previewTabs = document.querySelector('.preview-tabs');
             
@@ -1316,17 +1752,27 @@
                 const slideList = document.getElementById('slideList');
                 slideList.innerHTML = '';
                 
-                data.slides.forEach(slide => {
+                data.slides.forEach((slide, index) => {
                     const li = document.createElement('li');
                     li.className = 'slide-item';
                     li.innerHTML = `
-                        <span onclick="loadSlide('${slide}')">${slide}</span>
+                        <div class="slide-content">
+                            <span class="drag-handle">⋮⋮</span>
+                            <span class="slide-number">${index + 1}</span>
+                            <span onclick="loadSlide('${slide}')">${slide}</span>
+                        </div>
                         <div class="slide-actions">
                             <button class="slide-action-btn" onclick="deleteSlide('${slide}')" title="削除">🗑️</button>
                         </div>
                     `;
                     slideList.appendChild(li);
                 });
+                
+                // 並び替えモードの場合はドラッグ&ドロップを再有効化
+                if (reorderMode) {
+                    enableDragAndDrop();
+                }
+                
             } catch (error) {
                 console.error('スライド一覧の読み込みに失敗:', error);
             }
@@ -1465,8 +1911,8 @@
         // テキスト要素を抽出して編集パネルに表示
         async function extractTextElements() {
             const previewDoc = document.getElementById('previewFrame').contentDocument;
-            const editPanelContent = document.getElementById('editPanelContent');
-            editPanelContent.innerHTML = '';
+            const textEditTab = document.getElementById('textEditTab');
+            textEditTab.innerHTML = '';
             
             const textElements = [];
             const processedElements = new Set();
@@ -1536,16 +1982,264 @@
                 
                 field.appendChild(label);
                 field.appendChild(textarea);
-                editPanelContent.appendChild(field);
+                textEditTab.appendChild(field);
             });
             
             if (uniqueElements.length === 0) {
-                editPanelContent.innerHTML = '<p style="color: #666;">編集可能なテキストが見つかりません</p>';
+                textEditTab.innerHTML = '<p style="color: #666;">編集可能なテキストが見つかりません</p>';
             } else {
                 const countInfo = document.createElement('div');
                 countInfo.style.cssText = 'padding: 10px; background: #f0f0f0; margin-bottom: 15px; border-radius: 4px;';
                 countInfo.textContent = `${uniqueElements.length}個のテキスト要素が編集可能です`;
-                editPanelContent.insertBefore(countInfo, editPanelContent.firstChild);
+                textEditTab.insertBefore(countInfo, textEditTab.firstChild);
+            }
+        }
+        
+        // スタイル編集パネルを読み込み
+        function loadStyleEditor() {
+            const styleEditTab = document.getElementById('styleEditTab');
+            
+            const styleContent = `
+                <div class="style-section">
+                    <h4>🎨 フォント設定</h4>
+                    <div class="style-row">
+                        <label>ファミリー:</label>
+                        <select id="fontFamily">
+                            <option value="'Helvetica Neue', Arial, sans-serif">Helvetica Neue</option>
+                            <option value="'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif">Hiragino Sans</option>
+                            <option value="'Yu Gothic', YuGothic, sans-serif">Yu Gothic</option>
+                            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                        </select>
+                    </div>
+                    <div class="style-row">
+                        <label>サイズ:</label>
+                        <input type="range" id="fontSize" min="12" max="72" value="16">
+                        <span class="range-value" id="fontSizeValue">16px</span>
+                    </div>
+                    <div class="style-row">
+                        <label>太さ:</label>
+                        <select id="fontWeight">
+                            <option value="300">Light</option>
+                            <option value="400">Normal</option>
+                            <option value="600">Semi Bold</option>
+                            <option value="700">Bold</option>
+                            <option value="900">Black</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="style-section">
+                    <h4>🌈 カラーパレット</h4>
+                    <div class="style-row">
+                        <label>テキスト:</label>
+                        <input type="color" id="textColor" value="#333333">
+                    </div>
+                    <div class="color-palette">
+                        <div class="color-swatch" style="background-color: #1e3a5f" onclick="selectColor('#1e3a5f')"></div>
+                        <div class="color-swatch" style="background-color: #4a7ba7" onclick="selectColor('#4a7ba7')"></div>
+                        <div class="color-swatch" style="background-color: #ff9800" onclick="selectColor('#ff9800')"></div>
+                        <div class="color-swatch" style="background-color: #4caf50" onclick="selectColor('#4caf50')"></div>
+                        <div class="color-swatch" style="background-color: #f44336" onclick="selectColor('#f44336')"></div>
+                        <div class="color-swatch" style="background-color: #9c27b0" onclick="selectColor('#9c27b0')"></div>
+                        <div class="color-swatch" style="background-color: #333333" onclick="selectColor('#333333')"></div>
+                        <div class="color-swatch" style="background-color: #666666" onclick="selectColor('#666666')"></div>
+                    </div>
+                    <div class="style-row">
+                        <label>背景:</label>
+                        <input type="color" id="backgroundColor" value="#ffffff">
+                    </div>
+                </div>
+                
+                <div class="style-section">
+                    <h4>📐 レイアウト</h4>
+                    <div class="style-row">
+                        <label>行間:</label>
+                        <input type="range" id="lineHeight" min="1" max="3" step="0.1" value="1.5">
+                        <span class="range-value" id="lineHeightValue">1.5</span>
+                    </div>
+                    <div class="style-row">
+                        <label>余白:</label>
+                        <input type="range" id="padding" min="0" max="50" value="20">
+                        <span class="range-value" id="paddingValue">20px</span>
+                    </div>
+                </div>
+                
+                <div class="style-actions">
+                    <button class="style-btn primary" onclick="applyStyles()">適用</button>
+                    <button class="style-btn secondary" onclick="resetStyles()">リセット</button>
+                    <button class="style-btn secondary" onclick="saveStyleTemplate()">テンプレート保存</button>
+                </div>
+            `;
+            
+            styleEditTab.innerHTML = styleContent;
+            
+            // イベントリスナーを追加
+            setupStyleControls();
+        }
+        
+        // スタイルコントロールのセットアップ
+        function setupStyleControls() {
+            // フォントサイズスライダー
+            const fontSizeSlider = document.getElementById('fontSize');
+            const fontSizeValue = document.getElementById('fontSizeValue');
+            
+            fontSizeSlider.addEventListener('input', function() {
+                fontSizeValue.textContent = `${this.value}px`;
+            });
+            
+            // 行間スライダー
+            const lineHeightSlider = document.getElementById('lineHeight');
+            const lineHeightValue = document.getElementById('lineHeightValue');
+            
+            lineHeightSlider.addEventListener('input', function() {
+                lineHeightValue.textContent = this.value;
+            });
+            
+            // 余白スライダー
+            const paddingSlider = document.getElementById('padding');
+            const paddingValue = document.getElementById('paddingValue');
+            
+            paddingSlider.addEventListener('input', function() {
+                paddingValue.textContent = `${this.value}px`;
+            });
+        }
+        
+        // カラーパレットから色を選択
+        function selectColor(color) {
+            document.getElementById('textColor').value = color;
+            
+            // 選択状態を更新
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.classList.remove('selected');
+            });
+            
+            const selectedSwatch = document.querySelector(`[style*="${color}"]`);
+            if (selectedSwatch) {
+                selectedSwatch.classList.add('selected');
+            }
+        }
+        
+        // スタイルを適用
+        function applyStyles() {
+            if (!currentSlide) {
+                showToast('スライドが選択されていません', 'error');
+                return;
+            }
+            
+            const previewDoc = document.getElementById('previewFrame').contentDocument;
+            const slideElement = previewDoc.querySelector('.slide');
+            
+            if (!slideElement) {
+                showToast('スライド要素が見つかりません', 'error');
+                return;
+            }
+            
+            // 設定値を取得
+            const fontFamily = document.getElementById('fontFamily').value;
+            const fontSize = document.getElementById('fontSize').value;
+            const fontWeight = document.getElementById('fontWeight').value;
+            const textColor = document.getElementById('textColor').value;
+            const backgroundColor = document.getElementById('backgroundColor').value;
+            const lineHeight = document.getElementById('lineHeight').value;
+            const padding = document.getElementById('padding').value;
+            
+            // スタイルを適用
+            slideElement.style.fontFamily = fontFamily;
+            slideElement.style.fontSize = `${fontSize}px`;
+            slideElement.style.fontWeight = fontWeight;
+            slideElement.style.color = textColor;
+            slideElement.style.backgroundColor = backgroundColor;
+            slideElement.style.lineHeight = lineHeight;
+            slideElement.style.padding = `${padding}px`;
+            
+            // 変更フラグを立てる
+            isModified = true;
+            updateUI();
+            
+            showToast('スタイルを適用しました', 'success');
+        }
+        
+        // スタイルをリセット
+        function resetStyles() {
+            if (!currentSlide) {
+                showToast('スライドが選択されていません', 'error');
+                return;
+            }
+            
+            const previewDoc = document.getElementById('previewFrame').contentDocument;
+            const slideElement = previewDoc.querySelector('.slide');
+            
+            if (!slideElement) {
+                showToast('スライド要素が見つかりません', 'error');
+                return;
+            }
+            
+            // スタイルをリセット
+            slideElement.style.fontFamily = '';
+            slideElement.style.fontSize = '';
+            slideElement.style.fontWeight = '';
+            slideElement.style.color = '';
+            slideElement.style.backgroundColor = '';
+            slideElement.style.lineHeight = '';
+            slideElement.style.padding = '';
+            
+            // コントロールの値をリセット
+            document.getElementById('fontFamily').value = "'Helvetica Neue', Arial, sans-serif";
+            document.getElementById('fontSize').value = '16';
+            document.getElementById('fontSizeValue').textContent = '16px';
+            document.getElementById('fontWeight').value = '400';
+            document.getElementById('textColor').value = '#333333';
+            document.getElementById('backgroundColor').value = '#ffffff';
+            document.getElementById('lineHeight').value = '1.5';
+            document.getElementById('lineHeightValue').textContent = '1.5';
+            document.getElementById('padding').value = '20';
+            document.getElementById('paddingValue').textContent = '20px';
+            
+            // 変更フラグを立てる
+            isModified = true;
+            updateUI();
+            
+            showToast('スタイルをリセットしました', 'success');
+        }
+        
+        // スタイルテンプレートを保存
+        function saveStyleTemplate() {
+            const template = {
+                fontFamily: document.getElementById('fontFamily').value,
+                fontSize: document.getElementById('fontSize').value,
+                fontWeight: document.getElementById('fontWeight').value,
+                textColor: document.getElementById('textColor').value,
+                backgroundColor: document.getElementById('backgroundColor').value,
+                lineHeight: document.getElementById('lineHeight').value,
+                padding: document.getElementById('padding').value
+            };
+            
+            // ローカルストレージに保存
+            localStorage.setItem('slideStyleTemplate', JSON.stringify(template));
+            showToast('スタイルテンプレートを保存しました', 'success');
+        }
+        
+        // 保存されたスタイルテンプレートを読み込み
+        function loadStyleTemplate() {
+            const template = localStorage.getItem('slideStyleTemplate');
+            if (template) {
+                const styles = JSON.parse(template);
+                
+                document.getElementById('fontFamily').value = styles.fontFamily || "'Helvetica Neue', Arial, sans-serif";
+                document.getElementById('fontSize').value = styles.fontSize || '16';
+                document.getElementById('fontSizeValue').textContent = `${styles.fontSize || '16'}px`;
+                document.getElementById('fontWeight').value = styles.fontWeight || '400';
+                document.getElementById('textColor').value = styles.textColor || '#333333';
+                document.getElementById('backgroundColor').value = styles.backgroundColor || '#ffffff';
+                document.getElementById('lineHeight').value = styles.lineHeight || '1.5';
+                document.getElementById('lineHeightValue').textContent = styles.lineHeight || '1.5';
+                document.getElementById('padding').value = styles.padding || '20';
+                document.getElementById('paddingValue').textContent = `${styles.padding || '20'}px`;
+                
+                showToast('スタイルテンプレートを読み込みました', 'success');
             }
         }
         
