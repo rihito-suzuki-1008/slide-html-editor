@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デッドロック回復</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.6;color:#333;background:#fff;}
+        /* --- Slide container (4:3, 1024×768) --- */
+        .slide{width:1024px;height:768px;padding:40px 50px 35px;position:relative;background:#fff;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 0 14px rgba(0,0,0,.08);}
+        /* --- Header --- */
+        .slide-header{font-size:28px;font-weight:700;color:#163a5f;margin-bottom:28px;padding-bottom:10px;border-bottom:3px solid #2f6da0;}
+        /* --- Content area --- */
+        .content-area{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:flex-start;}
+        /* --- Card component --- */
+        .card{background:#fff;border-left:6px solid #ffc107;border-radius:8px;padding:28px 26px 24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 2px 6px rgba(0,0,0,.06);}
+        .card-title{font-size:20px;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:10px;}
+        .card-title .icon{font-size:22px;line-height:0;}
+        .bullet-list{margin-left:18px;list-style:disc;font-size:15px;color:#3d3d3d;line-height:1.8;}
+        /* --- Footer --- */
+        .slide-footer{position:absolute;bottom:16px;left:50px;right:50px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;}
+        .slide-number{font-weight:600;background:#1e3a5f;color:#fff;padding:4px 12px;border-radius:12px;}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">デッドロック回復</h2>
+        <div class="content-area">
+            <!-- Victim Selection Card -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🎯</span>犠牲者選択基準</div>
+                <ul class="bullet-list">
+                    <li><strong>ロールバックコスト</strong>：更新量が少ないTxを優先中止</li>
+                    <li><strong>経過時間</strong>：実行時間が短いTxを犠牲に</li>
+                    <li><strong>優先度／重要度</strong>：ビジネス重要度が低いTx</li>
+                    <li><strong>繰り返し中止回数</strong>：巻き戻し履歴が少ないTx</li>
+                </ul>
+            </div>
+            <!-- Rollback Strategy Card -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🔄</span>ロールバック戦略</div>
+                <ul class="bullet-list">
+                    <li><strong>部分ロールバック</strong>：最近の操作のみUNDOし早期リスタート</li>
+                    <li><strong>全体ロールバック</strong>：Tx全体をUNDOし待機列から除外</li>
+                    <li><code>UNDO/REDO</code> ログ + チェックポイントで高効率</li>
+                    <li>再試行前に <em>Wait‑Die</em> / <em>Wound‑Wait</em> など防止策適用</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">18</div>
+        </div>
+    </div>
+</body>
+</html>

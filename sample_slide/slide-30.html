@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロトコル比較まとめ</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.55;color:#333;background:#fff;}
+        /* --- Slide container (4:3) --- */
+        .slide{width:1024px;height:768px;padding:40px 46px 35px;position:relative;background:#fff;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 0 14px rgba(0,0,0,.08);}        
+        /* --- Header --- */
+        .slide-header{font-size:27px;font-weight:700;color:#163a5f;margin-bottom:26px;padding-bottom:10px;border-bottom:3px solid #2f6da0;}
+        /* --- Content area --- */
+        .content-area{display:grid; grid-template-columns:1fr; gap:30px; flex:1;align-items:flex-start;}
+        /* --- Table block --- */
+        .table-block{width:100%;margin:0 auto;background:#f8f9fb;border-left:6px solid #607d8b;border-radius:8px;padding:20px 20px 18px;box-shadow:0 2px 6px rgba(0,0,0,.04);}        
+        table{width:100%;border-collapse:collapse;font-size:12.5px;}
+        th,td{border:1px solid #bbb;padding:4px 6px;text-align:center;white-space:nowrap;}
+        th{background:#eceff1;font-weight:700;color:#263238;}
+        caption{caption-side:top;font-size:15px;font-weight:700;margin-bottom:8px;color:#263238;}
+        .good{background:#e8f5e9;color:#2e7d32;font-weight:600;}
+        .mid{background:#fffde7;color:#f9a825;font-weight:600;}
+        .poor{background:#ffebee;color:#c62828;font-weight:600;}
+        /* --- Info card --- */
+        .info-card{width:100%;margin:0;background:#fff;border-left:6px solid #607d8b;border-radius:8px;padding:22px 22px 22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 2px 6px rgba(0,0,0,.06);}        
+        .card-title{font-size:19px;font-weight:700;color:#263238;display:flex;align-items:center;gap:8px;}
+        .bullet-list{margin-left:18px;list-style:disc;font-size:14px;color:#3d3d3d;line-height:1.8;}
+        /* --- Footer --- */
+        .slide-footer{position:absolute;bottom:16px;left:46px;right:46px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;}
+        .slide-number{font-weight:600;background:#1e3a5f;color:#fff;padding:4px 12px;border-radius:12px;}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">プロトコル比較サマリ</h2>
+        <div class="content-area">
+            <!-- Comparison Table -->
+            <div class="table-block">
+                <table>
+                    <caption>主要プロトコルの特性比較</caption>
+                    <thead>
+                        <tr>
+                            <th>プロトコル</th><th>直列化保証</th><th>並行性</th><th>デッドロック</th><th>ロールバック頻度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Strict&nbsp;2PL</td><td class="good">◎</td><td class="mid">△</td><td class="poor">発生</td><td class="good">少</td></tr>
+                        <tr><td>Rigorous&nbsp;2PL</td><td class="good">◎</td><td class="poor">低</td><td class="poor">発生</td><td class="good">少</td></tr>
+                        <tr><td>SSI</td><td class="good">◎</td><td class="good">高</td><td class="good">回避</td><td class="mid">中</td></tr>
+                        <tr><td>Snapshot&nbsp;Isolation</td><td class="mid">○*</td><td class="good">高</td><td class="good">回避</td><td class="mid">中</td></tr>
+                        <tr><td>Timestamp&nbsp;Ordering</td><td class="good">◎</td><td class="good">高</td><td class="good">回避</td><td class="poor">多</td></tr>
+                        <tr><td>Optimistic&nbsp;CC</td><td class="good">◎</td><td class="good">非常に高</td><td class="good">回避</td><td class="mid">中〜多</td></tr>
+                    </tbody>
+                </table>
+                <p style="font-size:11px;color:#666;margin-top:4px;">* SI はライトスキュー等で非直列化可能になるケースあり</p>
+            </div>
+            <!-- Recommendation Card -->
+            <div class="info-card">
+                <div class="card-title">採用ガイドライン &amp; トレードオフ</div>
+                <ul class="bullet-list">
+                    <li><strong>更新競合が高頻度</strong>：Strict&nbsp;2PL / Rigorous&nbsp;2PL が安全</li>
+                    <li><strong>読取り主体 &amp; スケール重視</strong>：SSI もしくは SI + アプリ対策</li>
+                    <li><strong>高レイテンシ回避</strong>：Timestamp&nbsp;Ordering / OCC</li>
+                    <li>整合性優先 ➜ 2PL 系 | 性能優先 ➜ SI / OCC</li>
+                    <li>混合ワークロード：<em>階層ロック + SSI</em> などハイブリッド</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">30</div>
+        </div>
+    </div>
+</body>
+</html>

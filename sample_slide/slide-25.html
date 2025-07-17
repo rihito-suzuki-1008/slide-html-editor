@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイムスタンプ順序プロトコル</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.6;color:#333;background:#fff;}
+        /* --- Slide container (4:3, 1024×768) --- */
+        .slide{width:1024px;height:768px;padding:40px 50px 35px;position:relative;background:#fff;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 0 14px rgba(0,0,0,.08);}        
+        /* --- Header --- */
+        .slide-header{font-size:28px;font-weight:700;color:#163a5f;margin-bottom:28px;padding-bottom:10px;border-bottom:3px solid #2f6da0;}
+        /* --- Content area --- */
+        .content-area{flex:1;display:grid;grid-template-columns:1.1fr 1fr;gap:35px;align-items:flex-start;}
+        /* --- Timeline block --- */
+        .timeline-block{background:#f8f9fb;border-left:6px solid #8845d8;border-radius:8px;padding:26px 26px 30px;display:flex;justify-content:center;align-items:center;min-height:390px;box-shadow:0 2px 6px rgba(0,0,0,.04);}        
+        .timeline-svg{width:100%;max-width:430px;height:auto;}
+        .axis{stroke:#0d2847;stroke-width:3;}
+        .op-box{fill:#8845d8;stroke:#0d2847;stroke-width:2;rx:5;}
+        .op-text{fill:#fff;font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:central;}
+        .rollback-arrow{stroke:#f44336;stroke-width:2;stroke-dasharray:4 4;marker-end:url(#arrowHead);}    
+        .rollback-label{fill:#f44336;font-size:12px;}
+        /* --- Info card --- */
+        .info-card{background:#fff;border-left:6px solid #8845d8;border-radius:8px;padding:28px 26px 24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 2px 6px rgba(0,0,0,.06);}        
+        .card-title{font-size:20px;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:8px;}
+        .card-title .icon{font-size:22px;line-height:0;}
+        .bullet-list{margin-left:18px;list-style:disc;font-size:15px;color:#3d3d3d;line-height:1.9;}
+        .section-header{font-weight:700;color:#0d47a1;margin-top:6px;}
+        /* --- Footer --- */
+        .slide-footer{position:absolute;bottom:16px;left:50px;right:50px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;}
+        .slide-number{font-weight:600;background:#1e3a5f;color:#fff;padding:4px 12px;border-radius:12px;}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">タイムスタンプ順序プロトコル（Timestamp&nbsp;Ordering）</h2>
+        <div class="content-area">
+            <!-- Timeline Diagram -->
+            <div class="timeline-block">
+                <svg class="timeline-svg" viewBox="0 0 440 340" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <marker id="arrowHead" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L6,3 L0,6 Z" fill="#f44336" />
+                        </marker>
+                    </defs>
+                    <!-- Timeline axes -->
+                    <line class="axis" x1="140" y1="40" x2="140" y2="300" />
+                    <line class="axis" x1="300" y1="40" x2="300" y2="300" />
+                    <text x="130" y="30" font-size="14" fill="#0d2847" font-weight="700">T1</text>
+                    <text x="290" y="30" font-size="14" fill="#0d2847" font-weight="700">T2</text>
+                    <!-- T1 operations -->
+                    <rect class="op-box" x="110" y="90" width="60" height="22" />
+                    <text class="op-text" x="140" y="101">read&nbsp;A</text>
+                    <rect class="op-box" x="110" y="150" width="60" height="22" />
+                    <text class="op-text" x="140" y="161">write&nbsp;A</text>
+                    <!-- T2 read later causes rollback -->
+                    <rect class="op-box" x="270" y="180" width="60" height="22" />
+                    <text class="op-text" x="300" y="191">read&nbsp;A</text>
+                    <!-- rollback arrow -->
+                    <line class="rollback-arrow" x1="270" y1="191" x2="200" y2="120" />
+                    <text class="rollback-label" x="210" y="118">ロールバック</text>
+                </svg>
+            </div>
+            <!-- Explanation Card -->
+            <div class="info-card">
+                <div class="card-title"><span class="icon">⏲️</span>基本アイデア</div>
+                <p style="font-size:15px;line-height:1.8;margin-left:2px;">各トランザクション開始時に<b>一意のタイムスタンプ</b>を付与し、すべての&nbsp;read/write&nbsp;をタイムスタンプ順に並べ替えて直列化を保証。</p>
+                <div class="section-header">読取りルール</div>
+                <ul class="bullet-list">
+                    <li>最も新しい <em>過去</em> の版を読む</li>
+                    <li>常に成功 ➜ <b>待ちなし</b></li>
+                </ul>
+                <div class="section-header">書込みルール</div>
+                <ul class="bullet-list">
+                    <li>未来の版を壊す場合 ➜ <span style="color:#f44336;font-weight:700;">ロールバック</span></li>
+                    <li>古い値なら <em>無視</em> (Thomas' Write Rule)</li>
+                </ul>
+                <div class="section-header">Pros / Cons</div>
+                <ul class="bullet-list">
+                    <li>✔ デッドロックなし (待ちがない)</li>
+                    <li>✘ <b>ロールバック頻発</b> ➜ 再試行コスト</li>
+                    <li>✘ 回復性 / カスケード制御を追加実装要</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">25</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ロックの種類</title>
+    <style>
+        /* 基本スタイル設定 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+        
+        /* スライドコンテナ - 4:3比率 */
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        /* ヘッダー */
+        .slide-header {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #4a7ba7;
+        }
+        
+        /* コンテンツエリア */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        
+        /* ロックタイプのカード */
+        .lock-types-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            flex: 1;
+        }
+        
+        .lock-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .lock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .shared-lock {
+            border-color: #2196F3;
+        }
+        
+        .exclusive-lock {
+            border-color: #f44336;
+        }
+        
+        .lock-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .lock-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .shared-icon {
+            background: #2196F3;
+        }
+        
+        .exclusive-icon {
+            background: #f44336;
+        }
+        
+        .lock-title {
+            flex: 1;
+        }
+        
+        .lock-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        .lock-abbr {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .lock-description {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .permission-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .permission-item {
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+        }
+        
+        .allowed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .denied {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .permission-icon {
+            font-size: 20px;
+        }
+        
+        /* 使用例 */
+        .usage-section {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .usage-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+        }
+        
+        .usage-examples {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .usage-example {
+            background: #f5f5f5;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            border-left: 3px solid #4a7ba7;
+        }
+        
+        /* フッター */
+        .slide-footer {
+            position: absolute;
+            bottom: 25px;
+            left: 50px;
+            right: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">ロックの種類</h2>
+        
+        <div class="content-area">
+            <div class="lock-types-container">
+                <!-- 共有ロック -->
+                <div class="lock-card shared-lock">
+                    <div class="lock-header">
+                        <div class="lock-icon shared-icon">S</div>
+                        <div class="lock-title">
+                            <div class="lock-name">共有ロック</div>
+                            <div class="lock-abbr">Shared Lock (S-lock)</div>
+                        </div>
+                    </div>
+                    <div class="lock-description">
+                        <ul class="permission-list">
+                            <li class="permission-item allowed">
+                                <span class="permission-icon">✓</span>
+                                <span>読み取り（Read）可能</span>
+                            </li>
+                            <li class="permission-item denied">
+                                <span class="permission-icon">✗</span>
+                                <span>書き込み（Write）不可</span>
+                            </li>
+                        </ul>
+                        <div style="margin-top: auto; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                            <strong>特徴：</strong><br>
+                            複数のトランザクションが同時に共有ロックを保持可能
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 排他ロック -->
+                <div class="lock-card exclusive-lock">
+                    <div class="lock-header">
+                        <div class="lock-icon exclusive-icon">X</div>
+                        <div class="lock-title">
+                            <div class="lock-name">排他ロック</div>
+                            <div class="lock-abbr">Exclusive Lock (X-lock)</div>
+                        </div>
+                    </div>
+                    <div class="lock-description">
+                        <ul class="permission-list">
+                            <li class="permission-item allowed">
+                                <span class="permission-icon">✓</span>
+                                <span>読み取り（Read）可能</span>
+                            </li>
+                            <li class="permission-item allowed">
+                                <span class="permission-icon">✓</span>
+                                <span>書き込み（Write）可能</span>
+                            </li>
+                        </ul>
+                        <div style="margin-top: auto; padding: 15px; background: #ffebee; border-radius: 8px;">
+                            <strong>特徴：</strong><br>
+                            一度に1つのトランザクションのみが保持可能
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="usage-section">
+                <div class="usage-title">ロック操作の例</div>
+                <div class="usage-examples">
+                    <div class="usage-example">
+                        lock-S(Q)   // Qに共有ロック
+                    </div>
+                    <div class="usage-example">
+                        lock-X(Q)   // Qに排他ロック
+                    </div>
+                    <div class="usage-example">
+                        unlock(Q)   // Qのロック解放
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">5</div>
+        </div>
+    </div>
+</body>
+</html>

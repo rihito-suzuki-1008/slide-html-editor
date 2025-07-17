@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ロックによる問題 - デッドロック</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.5;
+            color: #333;
+            background: #fff;
+        }
+        
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .slide-header {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4a7ba7;
+        }
+        
+        .content-area {
+            flex: 1;
+            display: flex;
+            gap: 25px;
+        }
+        
+        .schedule-section {
+            flex: 1.5;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .schedule-table {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .table-header {
+            display: flex;
+            background: #1e3a5f;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .col {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .col:last-child {
+            border-right: none;
+        }
+        
+        .table-row {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            min-height: 35px;
+            align-items: center;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .cell {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            border-right: 1px solid #eee;
+        }
+        
+        .cell:last-child {
+            border-right: none;
+        }
+        
+        .op-lock-x { color: #f44336; font-weight: bold; }
+        .op-lock-s { color: #2196F3; font-weight: bold; }
+        .op-read { color: #673AB7; font-weight: bold; }
+        .op-write { color: #FF5722; font-weight: bold; }
+        .op-unlock { color: #4CAF50; font-weight: bold; }
+        
+        .deadlock-row {
+            background: #ffebee;
+        }
+        
+        .wait-indicator {
+            color: #ff5722;
+            font-weight: bold;
+            font-style: italic;
+        }
+        
+        .explanation-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .deadlock-diagram {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .diagram-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+        }
+        
+        .cycle-visualization {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .transaction-node {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #4a7ba7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            position: relative;
+        }
+        
+        .arrow-right {
+            font-size: 24px;
+            color: #f44336;
+        }
+        
+        .wait-description {
+            font-size: 13px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .deadlock-explanation {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .explanation-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .alert-icon {
+            font-size: 24px;
+            color: #ff9800;
+        }
+        
+        .explanation-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        .explanation-text {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .explanation-text ul {
+            margin: 8px 0 0 20px;
+        }
+        
+        .slide-footer {
+            position: absolute;
+            bottom: 15px;
+            left: 35px;
+            right: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">ロックによる問題：デッドロック</h2>
+        
+        <div class="content-area">
+            <div class="schedule-section">
+                <div class="section-title">Figure 18.7 Schedule 2 - デッドロック発生</div>
+                <div class="schedule-table">
+                    <div class="table-header">
+                        <div class="col">T3</div>
+                        <div class="col">T4</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="cell"><span class="op-lock-x">lock-X(B)</span></div>
+                        <div class="cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="cell"><span class="op-read">read(B)</span></div>
+                        <div class="cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="cell">B := B - 50</div>
+                        <div class="cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="cell"><span class="op-write">write(B)</span></div>
+                        <div class="cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="cell"></div>
+                        <div class="cell"><span class="op-lock-s">lock-S(A)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="cell"></div>
+                        <div class="cell"><span class="op-read">read(A)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="cell"></div>
+                        <div class="cell"><span class="op-lock-s">lock-S(B)</span></div>
+                    </div>
+                    <div class="table-row deadlock-row">
+                        <div class="cell"><span class="op-lock-x">lock-X(A)</span><br><span class="wait-indicator">→ 待機</span></div>
+                        <div class="cell"><span class="wait-indicator">← 待機</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="explanation-section">
+                <div class="deadlock-diagram">
+                    <div class="diagram-title">デッドロックの循環待機</div>
+                    <div class="cycle-visualization">
+                        <div class="transaction-node">T3</div>
+                        <div class="arrow-right">→</div>
+                        <div class="transaction-node">T4</div>
+                    </div>
+                    <div class="wait-description">
+                        T3はT4がAを解放するのを待つ
+                    </div>
+                    <div class="cycle-visualization" style="margin-top: 10px;">
+                        <div class="transaction-node">T4</div>
+                        <div class="arrow-right">→</div>
+                        <div class="transaction-node">T3</div>
+                    </div>
+                    <div class="wait-description">
+                        T4はT3がBを解放するのを待つ
+                    </div>
+                </div>
+                
+                <div class="deadlock-explanation">
+                    <div class="explanation-header">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="explanation-title">デッドロックとは</span>
+                    </div>
+                    <div class="explanation-text">
+                        複数のトランザクションが互いに相手の持つロックの解放を待ち合う状態
+                        <ul>
+                            <li>T3: Bを保持、Aを要求</li>
+                            <li>T4: Aを保持、Bを要求</li>
+                            <li>どちらも進行不可能</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">8</div>
+        </div>
+    </div>
+</body>
+</html>

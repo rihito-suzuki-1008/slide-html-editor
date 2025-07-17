@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ツリープロトコルの実行例</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.5;
+            color: #333;
+            background: #fff;
+        }
+        
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .slide-header {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4a7ba7;
+        }
+        
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .schedule-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            flex: 1;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .schedule-table {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 12px;
+        }
+        
+        .table-header {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background: #1e3a5f;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .header-cell {
+            padding: 8px;
+            text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .header-cell:last-child {
+            border-right: none;
+        }
+        
+        .table-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-bottom: 1px solid #eee;
+            min-height: 30px;
+            align-items: center;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .table-cell {
+            padding: 5px 8px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            border-right: 1px solid #eee;
+        }
+        
+        .table-cell:last-child {
+            border-right: none;
+        }
+        
+        .op-lock { color: #f44336; font-weight: bold; }
+        .op-unlock { color: #4CAF50; font-weight: bold; }
+        
+        .visualization-section {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+        }
+        
+        .tree-state {
+            flex: 1;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .state-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .mini-tree {
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .node-status {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            line-height: 30px;
+            text-align: center;
+            margin: 3px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .locked-t10 { background: #f44336; }
+        .locked-t11 { background: #2196F3; }
+        .locked-t12 { background: #ff9800; }
+        .locked-t13 { background: #9C27B0; }
+        .unlocked { background: #ddd; color: #666; }
+        
+        .observation-box {
+            background: #e8f5e9;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .observation-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 8px;
+        }
+        
+        .observation-list {
+            font-size: 13px;
+            color: #1b5e20;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .observation-item {
+            padding: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .check-icon {
+            color: #4CAF50;
+            font-size: 14px;
+        }
+        
+        .slide-footer {
+            position: absolute;
+            bottom: 15px;
+            left: 35px;
+            right: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">ツリープロトコルの実行例</h2>
+        
+        <div class="content-area">
+            <div class="schedule-section">
+                <div class="section-title">Figure 18.12：直列化可能なスケジュール</div>
+                <div class="schedule-table">
+                    <div class="table-header">
+                        <div class="header-cell">T10</div>
+                        <div class="header-cell">T11</div>
+                        <div class="header-cell">T12</div>
+                        <div class="header-cell">T13</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-X(B)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-lock">lock-X(D)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-lock">lock-X(H)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-unlock">unlock(D)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-X(E)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-X(D)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-unlock">unlock(B)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-unlock">unlock(E)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-lock">lock-X(B)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-lock">lock-X(E)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-unlock">unlock(H)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-X(G)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-unlock">unlock(D)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-lock">lock-X(D)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-lock">lock-X(H)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-unlock">unlock(E)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-unlock">unlock(B)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-unlock">unlock(G)</span></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-unlock">unlock(D)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-unlock">unlock(H)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="observation-box">
+                <div class="observation-title">重要な観察点</div>
+                <ul class="observation-list">
+                    <li class="observation-item">
+                        <span class="check-icon">✓</span>
+                        T10はサブツリー全体をロック（B→E, B→D→G）
+                    </li>
+                    <li class="observation-item">
+                        <span class="check-icon">✓</span>
+                        デッドロックが発生していない
+                    </li>
+                    <li class="observation-item">
+                        <span class="check-icon">✓</span>
+                        早期アンロックにより同時実行性が向上
+                    </li>
+                    <li class="observation-item">
+                        <span class="check-icon">✓</span>
+                        衝突直列化可能性が保証されている
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">15</div>
+        </div>
+    </div>
+</body>
+</html>

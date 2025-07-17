@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2PLの変種</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.5;
+            color: #333;
+            background: #fff;
+        }
+        
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .slide-header {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a7ba7;
+        }
+        
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .variants-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+        
+        .variant-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border: 3px solid transparent;
+            transition: transform 0.3s;
+        }
+        
+        .variant-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .strict-2pl {
+            border-color: #2196F3;
+        }
+        
+        .rigorous-2pl {
+            border-color: #9C27B0;
+        }
+        
+        .variant-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .variant-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .strict-icon {
+            background: #2196F3;
+        }
+        
+        .rigorous-icon {
+            background: #9C27B0;
+        }
+        
+        .variant-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        .variant-subtitle {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .variant-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .rule-box {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+        }
+        
+        .rule-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 6px;
+        }
+        
+        .rule-text {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        .benefit-box {
+            background: #e8f5e9;
+            border: 1px solid #4CAF50;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: auto;
+        }
+        
+        .benefit-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .benefit-icon {
+            font-size: 16px;
+        }
+        
+        .benefit-list {
+            font-size: 12px;
+            color: #1b5e20;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .benefit-item {
+            padding: 2px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .comparison-section {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .comparison-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .comparison-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .protocol-box {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f5f5f5;
+            font-size: 12px;
+            flex: 1;
+        }
+        
+        .protocol-name {
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 5px;
+        }
+        
+        .lock-period {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .arrow {
+            color: #4a7ba7;
+            font-size: 20px;
+        }
+        
+        .slide-footer {
+            position: absolute;
+            bottom: 15px;
+            left: 35px;
+            right: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">2PLの変種</h2>
+        
+        <div class="content-area">
+            <div class="variants-container">
+                <div class="variant-card strict-2pl">
+                    <div class="variant-header">
+                        <div class="variant-icon strict-icon">🔒</div>
+                        <div>
+                            <div class="variant-name">Strict 2PL</div>
+                            <div class="variant-subtitle">厳密2相ロック</div>
+                        </div>
+                    </div>
+                    <div class="variant-content">
+                        <div class="rule-box">
+                            <div class="rule-title">追加ルール</div>
+                            <div class="rule-text">
+                                基本の2PLに加えて：<br>
+                                <strong>排他ロック（X-lock）</strong>はトランザクションが<br>
+                                <strong>コミットまたはアボート</strong>するまで保持
+                            </div>
+                        </div>
+                        <div class="rule-box">
+                            <div class="rule-title">共有ロックの扱い</div>
+                            <div class="rule-text">
+                                共有ロック（S-lock）は通常の2PLと同様、<br>
+                                収縮フェーズで解放可能
+                            </div>
+                        </div>
+                        <div class="benefit-box">
+                            <div class="benefit-title">
+                                <span class="benefit-icon">✓</span>
+                                利点
+                            </div>
+                            <ul class="benefit-list">
+                                <li class="benefit-item">• カスケードロールバック回避</li>
+                                <li class="benefit-item">• 回復可能性（Recoverability）保証</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="variant-card rigorous-2pl">
+                    <div class="variant-header">
+                        <div class="variant-icon rigorous-icon">🔐</div>
+                        <div>
+                            <div class="variant-name">Rigorous 2PL</div>
+                            <div class="variant-subtitle">厳格2相ロック</div>
+                        </div>
+                    </div>
+                    <div class="variant-content">
+                        <div class="rule-box">
+                            <div class="rule-title">追加ルール</div>
+                            <div class="rule-text">
+                                基本の2PLに加えて：<br>
+                                <strong>すべてのロック</strong>（S-lockもX-lockも）を<br>
+                                <strong>コミットまたはアボート</strong>するまで保持
+                            </div>
+                        </div>
+                        <div class="rule-box">
+                            <div class="rule-title">最も制約的</div>
+                            <div class="rule-text">
+                                成長フェーズの後、ロック解放なしで<br>
+                                直接コミット/アボートへ
+                            </div>
+                        </div>
+                        <div class="benefit-box">
+                            <div class="benefit-title">
+                                <span class="benefit-icon">✓</span>
+                                利点
+                            </div>
+                            <ul class="benefit-list">
+                                <li class="benefit-item">• コミット順序での直列化</li>
+                                <li class="benefit-item">• 実装がシンプル</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comparison-section">
+                <div class="comparison-title">ロック保持期間の比較</div>
+                <div class="comparison-diagram">
+                    <div class="protocol-box">
+                        <div class="protocol-name">基本2PL</div>
+                        <div class="lock-period">ロックを早期解放可能</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="protocol-box" style="background: #e3f2fd;">
+                        <div class="protocol-name">Strict 2PL</div>
+                        <div class="lock-period">X-lockのみコミットまで</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="protocol-box" style="background: #e1bee7;">
+                        <div class="protocol-name">Rigorous 2PL</div>
+                        <div class="lock-period">全ロックをコミットまで</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">12</div>
+        </div>
+    </div>
+</body>
+</html>

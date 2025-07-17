@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商用システムでの実装</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.6;color:#333;background:#fff;}
+        /* --- Slide container (4:3) --- */
+        .slide{width:1024px;height:768px;padding:40px 50px 35px;position:relative;background:#fff;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 0 14px rgba(0,0,0,.08);}        
+        /* --- Header --- */
+        .slide-header{font-size:28px;font-weight:700;color:#163a5f;margin-bottom:28px;padding-bottom:10px;border-bottom:3px solid #2f6da0;}
+        /* --- Content area --- */
+        .content-area{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:flex-start;}
+        /* --- Vendor card --- */
+        .vendor-card{background:#fff;border-left:6px solid #1976d2;border-radius:8px;padding:26px 24px 24px;display:flex;flex-direction:column;gap:16px;box-shadow:0 2px 6px rgba(0,0,0,.06);}        
+        .vendor-title{font-size:18px;font-weight:700;color:#0d47a1;display:flex;align-items:center;gap:8px;}
+        .logo{width:20px;height:20px;object-fit:contain;}
+        .vendor-desc{font-size:14.5px;color:#3d3d3d;line-height:1.8;}
+        /* --- Footer --- */
+        .slide-footer{position:absolute;bottom:16px;left:50px;right:50px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;}
+        .slide-number{font-weight:600;background:#1e3a5f;color:#fff;padding:4px 12px;border-radius:12px;}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">商用システムでの実装例</h2>
+        <div class="content-area">
+            <!-- PostgreSQL -->
+            <div class="vendor-card">
+                <div class="vendor-title"><img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg" alt="pgsql"/>PostgreSQL (9.1+)</div>
+                <p class="vendor-desc">独自の <strong>Serializable Snapshot Isolation&nbsp;(SSI)</strong> を実装。<br>依存関係グラフで危険構造を検出し、必要な Tx のみ中止 ➜ <em>高スケーラビリティ</em> と <em>真の直列化可能性</em> を両立。</p>
+            </div>
+            <!-- Oracle / 旧PostgreSQL behaviour -->
+            <div class="vendor-card">
+                <div class="vendor-title"><img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg" alt="oracle"/>Oracle / 旧&nbsp;PostgreSQL</div>
+                <p class="vendor-desc">read‑only スナップショットと write‑set チェックのみの <strong>SI</strong> を <code>SERIALIZABLE</code> として提供。<br>ライトスキューはアプリ側対策が必要だが、<em>ロック競争が少なく高速</em>。</p>
+            </div>
+            <!-- Strict 2PL widespread -->
+            <div class="vendor-card" style="grid-column:span 2;border-left-color:#ff9800;">
+                <div class="vendor-title"><span style="font-size:20px;">🔒</span> Strict&nbsp;2PL が広く採用される理由</div>
+                <ul class="vendor-desc" style="list-style:disc;margin-left:18px;">
+                    <li><strong>実装容易</strong>：ロック表だけで管理可能</li>
+                    <li><strong>障害復旧簡便</strong>：UNDO ログが単純化</li>
+                    <li><strong>トランザクションモデル</strong> が他 RDBMS と共通 ➜ アプリ移植しやすい</li>
+                    <li>デフォルト分離レベル = <code>READ&nbsp;COMMITTED</code> + 必要箇所のみ <code>SELECT ... FOR UPDATE</code> が現実解</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">29</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>複数粒度ロック：階層構造</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.6;color:#333;background:#fff;}
+        /* --- Slide container (4:3, 1024×768) --- */
+        .slide{width:1024px;height:768px;padding:40px 50px 35px;position:relative;background:#fff;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 0 14px rgba(0,0,0,.08);}        
+        /* --- Header --- */
+        .slide-header{font-size:28px;font-weight:700;color:#163a5f;margin-bottom:28px;padding-bottom:10px;border-bottom:3px solid #2f6da0;}
+        /* --- Content area --- */
+        .content-area{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:center;}
+        /* --- Diagram block --- */
+        .diagram-block{display:flex;justify-content:center;}
+        .diagram-svg{width:100%;max-width:380px;height:auto;}
+        .node-rect{fill:#4a90e2;stroke:#1e3a5f;stroke-width:2;rx:6;}
+        .node-text{fill:#fff;font-size:14px;font-weight:700;text-anchor:middle;dominant-baseline:central;font-family:'Helvetica Neue',Arial,sans-serif;}
+        .link-line{stroke:#1e3a5f;stroke-width:2;}
+        /* --- Info card --- */
+        .info-card{background:#fff;border-left:6px solid #4a90e2;border-radius:8px;padding:28px 26px 24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 2px 6px rgba(0,0,0,.06);}        
+        .card-title{font-size:20px;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:8px;}
+        .card-title .icon{font-size:22px;line-height:0;}
+        .bullet-list{margin-left:18px;list-style:disc;font-size:15px;color:#3d3d3d;line-height:1.8;}
+        /* --- Footer --- */
+        .slide-footer{position:absolute;bottom:16px;left:50px;right:50px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;}
+        .slide-number{font-weight:600;background:#1e3a5f;color:#fff;padding:4px 12px;border-radius:12px;}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">複数粒度ロック：階層構造</h2>
+        <div class="content-area">
+            <!-- Diagram -->
+            <div class="diagram-block">
+                <svg class="diagram-svg" viewBox="0 0 220 300" preserveAspectRatio="xMidYMid meet">
+                    <!-- Nodes -->
+                    <rect class="node-rect" x="60" y="10" width="100" height="35"/>
+                    <text class="node-text" x="110" y="27">Database</text>
+
+                    <rect class="node-rect" x="10" y="80" width="90" height="35"/>
+                    <text class="node-text" x="55" y="97">Area&nbsp;A</text>
+                    <rect class="node-rect" x="120" y="80" width="90" height="35"/>
+                    <text class="node-text" x="165" y="97">Area&nbsp;B</text>
+
+                    <rect class="node-rect" x="10" y="150" width="90" height="35"/>
+                    <text class="node-text" x="55" y="167">File&nbsp;a1</text>
+                    <rect class="node-rect" x="120" y="150" width="90" height="35"/>
+                    <text class="node-text" x="165" y="167">File&nbsp;b1</text>
+
+                    <rect class="node-rect" x="10" y="220" width="90" height="35"/>
+                    <text class="node-text" x="55" y="237">Record&nbsp;ra2</text>
+                    <rect class="node-rect" x="120" y="220" width="90" height="35"/>
+                    <text class="node-text" x="165" y="237">Record&nbsp;rb3</text>
+
+                    <!-- Links -->
+                    <line class="link-line" x1="110" y1="45" x2="55" y2="80"/>
+                    <line class="link-line" x1="110" y1="45" x2="165" y2="80"/>
+
+                    <line class="link-line" x1="55" y1="115" x2="55" y2="150"/>
+                    <line class="link-line" x1="165" y1="115" x2="165" y2="150"/>
+
+                    <line class="link-line" x1="55" y1="185" x2="55" y2="220"/>
+                    <line class="link-line" x1="165" y1="185" x2="165" y2="220"/>
+                </svg>
+            </div>
+            <!-- Explanation card -->
+            <div class="info-card">
+                <div class="card-title"><span class="icon">🌲</span>粒度階層のポイント</div>
+                <ul class="bullet-list">
+                    <li>ロック対象を <strong>階層ツリー</strong> で管理し衝突を最小化</li>
+                    <li>上位ノードがロックされると <em>下位ノード</em> も保護</li>
+                    <li>逆に細粒度ロックで <em>高い並行性</em> を確保可能</li>
+                    <li>意図ロック (IS/IX/SIX) で <strong>整合性 + 性能</strong> を両立</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">20</div>
+        </div>
+    </div>
+</body>
+</html>

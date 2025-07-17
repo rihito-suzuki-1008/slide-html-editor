@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スライド編集システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* サイドバー */
+        .sidebar {
+            width: 250px;
+            background: #1e3a5f;
+            color: white;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #2a4a6f;
+        }
+        
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .new-slide-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        
+        .new-slide-btn:hover {
+            background: #5cbf60;
+        }
+        
+        .slide-list {
+            list-style: none;
+            flex: 1;
+        }
+        
+        .slide-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #2a4a6f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .slide-item:hover {
+            background: #2a4a6f;
+        }
+        
+        .slide-item.active {
+            background: #4a7ba7;
+        }
+        
+        .slide-item.modified::after {
+            content: '●';
+            color: #ff9800;
+            margin-left: 5px;
+        }
+        
+        .slide-item .slide-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .slide-action-btn {
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+        
+        .slide-action-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        /* メインエリア */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* ツールバー */
+        .toolbar {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .toolbar button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .save-btn {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .save-btn:hover {
+            background: #5cbf60;
+        }
+        
+        .save-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .reload-btn {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .reload-btn:hover {
+            background: #31a6ff;
+        }
+        
+        .preview-btn {
+            background: #673ab7;
+            color: white;
+        }
+        
+        .preview-btn:hover {
+            background: #7e4cc9;
+        }
+        
+        .edit-mode-toggle {
+            background: #ff9800;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .edit-mode-toggle:hover {
+            background: #ffab00;
+        }
+        
+        .edit-mode-toggle.active {
+            background: #f44336;
+        }
+        
+        .layout-mode-toggle {
+            background: #9c27b0;
+            color: white;
+            margin-left: 10px;
+        }
+        
+        .layout-mode-toggle:hover {
+            background: #af2cc5;
+        }
+        
+        .layout-mode-toggle.active {
+            background: #e91e63;
+        }
+        
+        .html-editor-toggle {
+            background: #607d8b;
+            color: white;
+            margin-left: 10px;
+            display: none;
+        }
+        
+        .html-editor-toggle:hover {
+            background: #78909c;
+        }
+        
+        .html-editor-toggle.active {
+            background: #455a64;
+        }
+        
+        /* コンテンツエリア */
+        .content-area {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        /* プレビューエリア */
+        .preview-container {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .preview-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* プレビュータブの表示制御 */
+        .preview-tabs {
+            display: flex;
+            gap: 10px;
+            transition: opacity 0.3s;
+        }
+        
+        .preview-tabs.hidden {
+            display: none;
+        }
+        
+        .preview-tab {
+            padding: 8px 16px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .preview-tab.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .preview-tab:hover:not(.active) {
+            background: #dee2e6;
+        }
+        
+        .preview-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .preview-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            display: block;
+        }
+        
+        .html-editor-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .html-editor-container.active {
+            display: flex;
+        }
+        
+        .html-editor-toolbar {
+            padding: 10px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .html-editor-toolbar button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .format-btn {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .format-btn:hover {
+            background: #5a6268;
+        }
+        
+        .apply-btn {
+            background: #28a745;
+            color: white;
+        }
+        
+        .apply-btn:hover {
+            background: #218838;
+        }
+        
+        .html-editor {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            border: none;
+            padding: 15px;
+            resize: none;
+            background: #f8f9fa;
+            color: #333;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+        }
+        
+        .html-editor:focus {
+            outline: none;
+            background: white;
+        }
+        
+        .layout-overlay {
+            position: absolute;
+            top: 0px; 
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: auto;
+            z-index: 100;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .layout-mode .layout-overlay {
+            display: block;
+        }
+        
+        /* 編集パネル */
+        .edit-panel {
+            width: 400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+        }
+        
+        .edit-panel.show {
+            display: flex;
+        }
+        
+        .edit-panel-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+        }
+        
+        .edit-panel-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .edit-field {
+            margin-bottom: 20px;
+        }
+        
+        .edit-field label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .edit-field textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .edit-field textarea:focus {
+            outline: none;
+            border-color: #4a7ba7;
+        }
+        
+        /* 選択可能な要素のオーバーレイ */
+        .element-overlay {
+            position: absolute;
+            border: 2px dashed transparent;
+            background: transparent;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.2s;
+        }
+        
+        .element-overlay:hover {
+            border-color: #2196f3;
+            background: rgba(33, 150, 243, 0.1);
+        }
+        
+        .element-overlay.selected {
+            border-color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+            border-style: solid;
+        }
+        
+        .element-overlay.dragging {
+            opacity: 0.7;
+        }
+        
+        /* リサイズハンドル */
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border: 2px solid #f44336;
+            border-radius: 50%;
+            display: none;
+        }
+        
+        .element-overlay.selected .resize-handle {
+            display: block;
+        }
+        
+        .resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
+        .resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
+        .resize-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+        .resize-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
+        
+        /* 座標表示 */
+        .position-info {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: #333;
+            color: white;
+            padding: 2px 8px;
+            font-size: 11px;
+            border-radius: 3px;
+            white-space: nowrap;
+            pointer-events: auto;
+            display: none;
+        }
+        
+        .element-overlay.selected .position-info {
+            display: block;
+        }
+        
+        /* グリッド表示 */
+        .preview-container.show-grid .layout-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 9px, rgba(0,0,0,0.05) 9px, rgba(0,0,0,0.05) 10px),
+                repeating-linear-gradient(90deg, transparent, transparent 9px, rgba(0,0,0,0.05) 9px, rgba(0,0,0,0.05) 10px);
+            pointer-events: auto;
+            z-index: -1;
+        }
+        
+        /* ステータスバー */
+        .status-bar {
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* ローディング */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast.success {
+            background: #4caf50;
+        }
+        
+        .toast.error {
+            background: #f44336;
+        }
+        
+        /* 新規スライドモーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: white;
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1e3a5f;
+        }
+        
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .template-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .template-card:hover {
+            border-color: #4a7ba7;
+            background: #f8f9fa;
+        }
+        
+        .template-card.selected {
+            border-color: #4a7ba7;
+            background: #e3f2fd;
+        }
+        
+        .template-card .template-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .template-card .template-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .modal-footer button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .cancel-btn {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .cancel-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .create-btn {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .create-btn:hover {
+            background: #5cbf60;
+        }
+        
+        .html-paste-area {
+            margin-bottom: 20px;
+        }
+        
+        .html-paste-area label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .html-paste-area textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        
+        .html-paste-area textarea:focus {
+            outline: none;
+            border-color: #4a7ba7;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>📑 スライド一覧</h2>
+            <button class="new-slide-btn" onclick="showNewSlideModal()">
+                ➕ 新規スライド
+            </button>
+        </div>
+        <ul class="slide-list" id="slideList">
+            <!-- スライド一覧がここに表示される -->
+        </ul>
+    </div>
+    
+    <div class="main-area">
+        <div class="toolbar">
+            <button class="save-btn" id="saveBtn" onclick="saveCurrentSlide()" disabled>
+                💾 保存 (Ctrl+S)
+            </button>
+            <button class="reload-btn" onclick="reloadCurrentSlide()">
+                🔄 再読み込み
+            </button>
+            <button class="preview-btn" onclick="openPreview()">
+                👁️ 全体プレビュー
+            </button>
+            <span id="currentSlideInfo">スライドを選択してください</span>
+            <button class="edit-mode-toggle" id="editModeBtn" onclick="toggleEditMode()">
+                ✏️ 簡易編集モード
+            </button>
+            <button class="layout-mode-toggle" id="layoutModeBtn" onclick="toggleLayoutMode()">
+                🎨 レイアウト編集
+            </button>
+
+        </div>
+        
+        <div class="content-area">
+            <div class="preview-container" id="previewContainer">
+                <div class="preview-header">
+                    <span>プレビュー</span>
+                    <div class="preview-tabs">
+                        <button class="preview-tab active" onclick="switchPreviewTab('preview')">プレビュー</button>
+                        <button class="preview-tab" onclick="switchPreviewTab('html')">HTML</button>
+                    </div>
+                </div>
+                <div class="preview-content">
+                    <iframe class="preview-frame" id="previewFrame"></iframe>
+                    <div class="html-editor-container" id="htmlEditorContainer">
+                        <div class="html-editor-toolbar">
+                            <button class="format-btn" onclick="formatHtml()">🎨 フォーマット</button>
+                            <span style="margin-left: auto; font-size: 12px; color: #666;">
+                                Ctrl+S で保存
+                            </span>
+                        </div>
+                        <textarea class="html-editor" id="htmlEditor" placeholder="HTMLコードを入力またはペーストしてください..."></textarea>
+                    </div>
+                </div>
+                <div class="layout-overlay" id="layoutOverlay"></div>
+            </div>
+            
+            <div class="edit-panel" id="editPanel">
+                <div class="edit-panel-header">
+                    テキスト編集
+                </div>
+                <div class="edit-panel-content" id="editPanelContent">
+                    <!-- 編集フィールドがここに表示される -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <span id="statusText">準備完了</span>
+            <span id="serverStatus">サーバー: 接続中...</span>
+        </div>
+    </div>
+    
+    <!-- 新規スライドモーダル -->
+    <div id="newSlideModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">新規スライドの作成</div>
+            
+            <div class="template-grid">
+                <div class="template-card" data-template="blank">
+                    <div class="template-icon">📄</div>
+                    <div class="template-name">空のスライド</div>
+                </div>
+                <div class="template-card" data-template="title">
+                    <div class="template-icon">📝</div>
+                    <div class="template-name">タイトルスライド</div>
+                </div>
+                <div class="template-card" data-template="content">
+                    <div class="template-icon">📋</div>
+                    <div class="template-name">コンテンツスライド</div>
+                </div>
+                <div class="template-card" data-template="summary">
+                    <div class="template-icon">📊</div>
+                    <div class="template-name">まとめスライド</div>
+                </div>
+                <div class="template-card selected" data-template="html">
+                    <div class="template-icon">🗂️</div>
+                    <div class="template-name">HTMLペースト</div>
+                </div>
+            </div>
+            
+            <div class="html-paste-area" id="htmlPasteArea">
+                <label for="htmlPaste">HTMLコードをペースト:</label>
+                <textarea id="htmlPaste" placeholder="AIで生成されたHTMLコードをここにペーストしてください..."></textarea>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="hideNewSlideModal()">キャンセル</button>
+                <button class="create-btn" onclick="createNewSlide()">作成</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">読み込み中...</div>
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentSlide = null;
+        let originalContent = null;
+        let isModified = false;
+        let editMode = false;
+        let layoutMode = false;
+        let htmlEditorMode = false;
+        let textElements = [];
+        let currentProjectName = null;
+        let selectedTemplate = 'html';
+        
+        // レイアウト編集用の変数
+        let selectedElement = null;
+        let selectedOverlay = null;
+        let isDragging = false;
+        let isResizing = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let elementStartX = 0;
+        let elementStartY = 0;
+        let elementStartWidth = 0;
+        let elementStartHeight = 0;
+        let resizeHandle = null;
+        
+        // 初期化
+        async function init() {
+            await loadCurrentProject();
+            await loadSlideList();
+            checkServerConnection();
+            setupKeyboardShortcuts();
+            setupTemplateSelection();
+            setupHtmlEditor();
+            
+            // グローバル関数として登録
+            window.toggleEditMode = toggleEditMode;
+            window.toggleLayoutMode = toggleLayoutMode;
+            window.saveCurrentSlide = saveCurrentSlide;
+            window.reloadCurrentSlide = reloadCurrentSlide;
+            window.openPreview = openPreview;
+            window.showNewSlideModal = showNewSlideModal;
+            window.hideNewSlideModal = hideNewSlideModal;
+            window.createNewSlide = createNewSlide;
+            window.switchPreviewTab = switchPreviewTab;
+            window.formatHtml = formatHtml;
+        }
+        
+        // HTMLエディターの設定
+        function setupHtmlEditor() {
+            const htmlEditor = document.getElementById('htmlEditor');
+            
+            htmlEditor.addEventListener('input', () => {
+                // HTMLエディターで変更があった場合、自動的にプレビューに適用
+                try {
+                    const previewFrame = document.getElementById('previewFrame');
+                    const previewDoc = previewFrame.contentDocument;
+                    previewDoc.open();
+                    previewDoc.write(htmlEditor.value);
+                    previewDoc.close();
+                    
+                    isModified = true;
+                    updateUI();
+                } catch (error) {
+                    console.error('HTMLの自動適用エラー:', error);
+                }
+            });
+            
+            htmlEditor.addEventListener('keydown', (e) => {
+                // Tabキーでインデント
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const start = htmlEditor.selectionStart;
+                    const end = htmlEditor.selectionEnd;
+                    const value = htmlEditor.value;
+                    
+                    htmlEditor.value = value.substring(0, start) + '    ' + value.substring(end);
+                    htmlEditor.selectionStart = htmlEditor.selectionEnd = start + 4;
+                }
+            });
+        }
+        
+        // プレビュータブの表示制御
+        function updatePreviewTabsVisibility() {
+            const previewTabs = document.querySelector('.preview-tabs');
+            
+            // テキスト編集モードまたはレイアウト編集モードの場合はタブを非表示
+            if (editMode || layoutMode) {
+                previewTabs.classList.add('hidden');
+                // 強制的にプレビュータブに切り替え
+                switchPreviewTab('preview');
+            } else {
+                previewTabs.classList.remove('hidden');
+            }
+        }
+        // プレビュータブの切り替え
+        function switchPreviewTab(tab) {
+            const tabs = document.querySelectorAll('.preview-tab');
+            const previewFrame = document.getElementById('previewFrame');
+            const htmlEditorContainer = document.getElementById('htmlEditorContainer');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'preview') {
+                tabs[0].classList.add('active');
+                previewFrame.style.display = 'block';
+                htmlEditorContainer.classList.remove('active');
+                htmlEditorMode = false;
+            } else if (tab === 'html') {
+                tabs[1].classList.add('active');
+                previewFrame.style.display = 'none';
+                htmlEditorContainer.classList.add('active');
+                htmlEditorMode = true;
+                
+                // 現在のHTMLをエディターに表示
+                if (currentSlide) {
+                    const previewDoc = previewFrame.contentDocument;
+                    if (previewDoc) {
+                        const htmlEditor = document.getElementById('htmlEditor');
+                        htmlEditor.value = previewDoc.documentElement.outerHTML;
+                    }
+                }
+            }
+        }
+        
+        // HTMLフォーマット
+        function formatHtml() {
+            const htmlEditor = document.getElementById('htmlEditor');
+            let html = htmlEditor.value;
+            
+            // 簡易フォーマット（実際の実装では専用ライブラリを使用することを推奨）
+            html = html.replace(/>\s*</g, '>\n<');
+            html = html.replace(/^\s*\n/gm, '');
+            
+            // インデントを追加
+            const lines = html.split('\n');
+            let indent = 0;
+            const formatted = lines.map(line => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('</')) {
+                    indent--;
+                }
+                const result = '    '.repeat(Math.max(0, indent)) + trimmed;
+                if (trimmed.startsWith('<') && !trimmed.startsWith('</') && !trimmed.endsWith('/>')) {
+                    indent++;
+                }
+                return result;
+            });
+            
+            htmlEditor.value = formatted.join('\n');
+            showToast('HTMLをフォーマットしました', 'success');
+        }
+        
+        // HTML変更を適用（削除予定）
+        function applyHtmlChanges() {
+            // この関数は削除されました - HTMLエディターはリアルタイムで適用されます
+            showToast('HTMLはリアルタイムで適用されています', 'success');
+        }
+        
+        // テンプレート選択の設定
+        function setupTemplateSelection() {
+            const templateCards = document.querySelectorAll('.template-card');
+            templateCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    templateCards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedTemplate = card.dataset.template;
+                    
+                    const htmlPasteArea = document.getElementById('htmlPasteArea');
+                    htmlPasteArea.style.display = selectedTemplate === 'html' ? 'block' : 'none';
+                });
+            });
+        }
+        
+        // 新規スライドモーダルを表示
+        function showNewSlideModal() {
+            document.getElementById('newSlideModal').style.display = 'block';
+            document.getElementById('htmlPaste').focus();
+        }
+        
+        // 新規スライドモーダルを非表示
+        function hideNewSlideModal() {
+            document.getElementById('newSlideModal').style.display = 'none';
+            document.getElementById('htmlPaste').value = '';
+        }
+        
+        // 新規スライドを作成
+        async function createNewSlide() {
+            let content = '';
+            
+            if (selectedTemplate === 'html') {
+                content = document.getElementById('htmlPaste').value.trim();
+                if (!content) {
+                    showToast('HTMLコードを入力してください', 'error');
+                    return;
+                }
+            } else {
+                content = getTemplateContent(selectedTemplate);
+            }
+            
+            showLoading(true);
+            
+            try {
+                // 次のスライド番号を取得
+                const nextNumber = await getNextSlideNumber();
+                const filename = `slide-${padNumber(nextNumber)}.html`;
+                
+                // スライドを作成
+                const response = await fetch(`${API_URL}/slides/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        filename: filename,
+                        content: content 
+                    })
+                });
+                
+                if (response.ok) {
+                    hideNewSlideModal();
+                    await loadSlideList();
+                    await loadSlide(filename);
+                    showToast(`${filename} を作成しました`, 'success');
+                } else {
+                    throw new Error('スライドの作成に失敗しました');
+                }
+            } catch (error) {
+                showToast('スライドの作成に失敗しました', 'error');
+                console.error('スライド作成エラー:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // 次のスライド番号を取得
+        async function getNextSlideNumber() {
+            try {
+                const response = await fetch(`${API_URL}/slides`);
+                const data = await response.json();
+                
+                if (data.slides.length === 0) {
+                    return 1;
+                }
+                
+                // 既存のスライド番号を取得
+                const numbers = data.slides.map(slide => {
+                    const match = slide.match(/slide-(\d+)\.html/);
+                    return match ? parseInt(match[1]) : 0;
+                });
+                
+                return Math.max(...numbers) + 1;
+            } catch (error) {
+                console.error('スライド番号取得エラー:', error);
+                return 1;
+            }
+        }
+        
+        // テンプレートコンテンツを取得
+        function getTemplateContent(template) {
+            const templates = {
+                blank: `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新規スライド</title>
+    <style>
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 40px;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: white;
+        }
+        @media print{@page{margin:0;size:landscape;} .slide{page-break-after:always;}}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2>新規スライド</h2>
+        <p>内容を編集してください</p>
+    </div>
+</body>
+</html>`,
+                title: `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイトルスライド</title>
+    <style>
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 40px;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #1e3a5f 0%, #4a7ba7 100%);
+            color: white;
+        }
+        h1 { font-size: 48px; margin-bottom: 30px; }
+        h2 { font-size: 32px; margin-bottom: 20px; opacity: 0.9; }
+        p { font-size: 20px; opacity: 0.8; }
+        @media print{@page{margin:0;size:landscape;} .slide{page-break-after:always;}}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h1>プレゼンテーションタイトル</h1>
+        <h2>サブタイトル</h2>
+        <p>発表者名・日付</p>
+    </div>
+</body>
+</html>`,
+                content: `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コンテンツスライド</title>
+    <style>
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 40px;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+        h2 { font-size: 32px; margin-bottom: 30px; color: #1e3a5f; }
+        .content-area { flex: 1; display: flex; gap: 30px; }
+        .text-area { flex: 1; }
+        .visual-area { flex: 1; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 8px; }
+        ul { font-size: 18px; line-height: 1.8; }
+        li { margin-bottom: 10px; }
+        @media print{@page{margin:0;size:landscape;} .slide{page-break-after:always;}}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2>スライドタイトル</h2>
+        <div class="content-area">
+            <div class="text-area">
+                <ul>
+                    <li>ポイント1</li>
+                    <li>ポイント2</li>
+                    <li>ポイント3</li>
+                </ul>
+            </div>
+            <div class="visual-area">
+                <p>図表・画像エリア</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`,
+                summary: `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>まとめスライド</title>
+    <style>
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 40px;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+        h2 { font-size: 32px; margin-bottom: 30px; color: #1e3a5f; text-align: center; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; flex: 1; }
+        .summary-section { background: #f8f9fa; padding: 25px; border-radius: 8px; border-left: 4px solid #4a7ba7; }
+        .summary-section h3 { font-size: 20px; margin-bottom: 15px; color: #1e3a5f; }
+        .summary-section ul { font-size: 16px; line-height: 1.6; }
+        .next-steps { grid-column: 1 / -1; background: #e3f2fd; border-left-color: #2196f3; }
+        @media print{@page{margin:0;size:landscape;} .slide{page-break-after:always;}}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2>まとめ</h2>
+        <div class="summary-grid">
+            <div class="summary-section">
+                <h3>主要なポイント</h3>
+                <ul>
+                    <li>ポイント1</li>
+                    <li>ポイント2</li>
+                    <li>ポイント3</li>
+                </ul>
+            </div>
+            <div class="summary-section">
+                <h3>得られた知見</h3>
+                <ul>
+                    <li>知見1</li>
+                    <li>知見2</li>
+                    <li>知見3</li>
+                </ul>
+            </div>
+            <div class="summary-section next-steps">
+                <h3>次のステップ</h3>
+                <ul>
+                    <li>アクション1</li>
+                    <li>アクション2</li>
+                    <li>アクション3</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`
+            };
+            
+            return templates[template] || templates.blank;
+        }
+        
+        // 番号をゼロパディング
+        function padNumber(num) {
+            return String(num).padStart(2, '0');
+        }
+        
+        // 現在のプロジェクト情報を取得
+        async function loadCurrentProject() {
+            try {
+                const response = await fetch(`${API_URL}/current-project`);
+                if (response.ok) {
+                    const data = await response.json();
+                    currentProjectName = data.projectPath;
+                }
+            } catch (error) {
+                console.error('プロジェクト情報の取得エラー:', error);
+            }
+        }
+        
+        // 全体プレビューを開く
+        function openPreview() {
+            if (!currentProjectName) {
+                showToast('プロジェクトが選択されていません', 'error');
+                return;
+            }
+            
+            const previewUrl = `/preview/slide_all_display.html?project=${encodeURIComponent(currentProjectName)}`;
+            window.open(previewUrl, '_blank');
+            showToast('プレビューを新しいタブで開きました', 'success');
+        }
+        
+        // キーボードショートカットの設定
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ctrl+S で保存（デフォルトのWebページ保存を防ぐ）
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!document.getElementById('saveBtn').disabled) {
+                        saveCurrentSlide();
+                    }
+                    return false;
+                }
+                
+                // Ctrl+P でプレビュー（デフォルトの印刷を防ぐ）
+                if (e.ctrlKey && e.key === 'p') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openPreview();
+                    return false;
+                }
+            }, true); // キャプチャフェーズで処理
+        }
+        
+        // サーバー接続チェック
+        async function checkServerConnection() {
+            try {
+                const response = await fetch(`${API_URL}/slides`);
+                if (response.ok) {
+                    document.getElementById('serverStatus').textContent = 'サーバー: 接続済み ✓';
+                }
+            } catch (error) {
+                document.getElementById('serverStatus').textContent = 'サーバー: 未接続 ✗';
+                showToast('サーバーに接続できません。Node.jsサーバーを起動してください。', 'error');
+            }
+        }
+        
+        // スライド一覧を読み込み
+        async function loadSlideList() {
+            try {
+                const response = await fetch(`${API_URL}/slides`);
+                const data = await response.json();
+                
+                const slideList = document.getElementById('slideList');
+                slideList.innerHTML = '';
+                
+                data.slides.forEach(slide => {
+                    const li = document.createElement('li');
+                    li.className = 'slide-item';
+                    li.innerHTML = `
+                        <span onclick="loadSlide('${slide}')">${slide}</span>
+                        <div class="slide-actions">
+                            <button class="slide-action-btn" onclick="deleteSlide('${slide}')" title="削除">🗑️</button>
+                        </div>
+                    `;
+                    slideList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('スライド一覧の読み込みに失敗:', error);
+            }
+        }
+        
+        // スライドを削除
+        async function deleteSlide(filename) {
+            if (!confirm(`${filename} を削除しますか？この操作は元に戻せません。`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/slides/${filename}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    if (currentSlide === filename) {
+                        currentSlide = null;
+                        originalContent = null;
+                        isModified = false;
+                        document.getElementById('previewFrame').src = '';
+                        updateUI();
+                    }
+                    
+                    await loadSlideList();
+                    showToast(`${filename} を削除しました`, 'success');
+                } else {
+                    throw new Error('削除に失敗しました');
+                }
+            } catch (error) {
+                showToast('スライドの削除に失敗しました', 'error');
+            }
+        }
+        
+        // スライドを読み込み
+        async function loadSlide(filename) {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}/slides/${filename}`);
+                const data = await response.json();
+                
+                currentSlide = filename;
+                originalContent = data.content;
+                isModified = false;
+                
+                // プレビューを更新
+                const previewDoc = document.getElementById('previewFrame').contentDocument;
+                previewDoc.open();
+                previewDoc.write(data.content);
+                previewDoc.close();
+                
+                // HTMLエディターを更新
+                const htmlEditor = document.getElementById('htmlEditor');
+                htmlEditor.value = data.content;
+                
+                // UI更新
+                updateUI();
+                
+                // プレビュータブの表示制御
+                updatePreviewTabsVisibility();
+                
+                // アクティブ表示
+                document.querySelectorAll('.slide-item').forEach(item => {
+                    item.classList.toggle('active', item.querySelector('span').textContent === filename);
+                });
+                
+                // 編集モードの場合はテキストを抽出
+                if (editMode) {
+                    await extractTextElements();
+                }
+                
+                showToast(`${filename} を読み込みました`);
+            } catch (error) {
+                showToast('スライドの読み込みに失敗しました', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // 現在のスライドを保存
+        async function saveCurrentSlide() {
+            if (!currentSlide || !isModified) return;
+            
+            showLoading(true);
+            
+            try {
+                let content;
+                if (htmlEditorMode) {
+                    content = document.getElementById('htmlEditor').value;
+                } else {
+                    const previewDoc = document.getElementById('previewFrame').contentDocument;
+                    content = previewDoc.documentElement.outerHTML;
+                }
+                
+                const response = await fetch(`${API_URL}/slides/${currentSlide}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                
+                if (response.ok) {
+                    originalContent = content;
+                    isModified = false;
+                    updateUI();
+                    showToast('保存しました', 'success');
+                } else {
+                    throw new Error('保存に失敗しました');
+                }
+            } catch (error) {
+                showToast('保存に失敗しました', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // 編集モード切り替え
+        async function toggleEditMode() {
+            editMode = !editMode;
+            const editPanel = document.getElementById('editPanel');
+            const editBtn = document.getElementById('editModeBtn');
+            
+            editPanel.classList.toggle('show', editMode);
+            editBtn.classList.toggle('active', editMode);
+            editBtn.textContent = editMode ? '📝 編集モード終了' : '✏️ 簡易編集モード';
+            
+            // プレビュータブの表示制御
+            updatePreviewTabsVisibility();
+            
+            if (editMode && currentSlide) {
+                await extractTextElements();
+            }
+        }
+        
+        // テキスト要素を抽出して編集パネルに表示
+        async function extractTextElements() {
+            const previewDoc = document.getElementById('previewFrame').contentDocument;
+            const editPanelContent = document.getElementById('editPanelContent');
+            editPanelContent.innerHTML = '';
+            
+            const textElements = [];
+            const processedElements = new Set();
+            
+            function collectTextElements(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.textContent.trim();
+                    if (text && node.parentElement && !processedElements.has(node.parentElement)) {
+                        const parent = node.parentElement;
+                        
+                        if (!['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(parent.tagName)) {
+                            processedElements.add(parent);
+                            
+                            const hasOnlyTextNodes = Array.from(parent.childNodes).every(
+                                child => child.nodeType === Node.TEXT_NODE || 
+                                        (child.nodeType === Node.ELEMENT_NODE && child.children.length === 0)
+                            );
+                            
+                            if (hasOnlyTextNodes) {
+                                textElements.push({
+                                    element: parent,
+                                    text: parent.textContent.trim(),
+                                    tagName: parent.tagName,
+                                    className: parent.className
+                                });
+                            }
+                        }
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    for (const child of node.childNodes) {
+                        collectTextElements(child);
+                    }
+                }
+            }
+            
+            const body = previewDoc.body;
+            if (body) {
+                collectTextElements(body);
+            }
+            
+            const uniqueElements = textElements.filter((item, index, self) => 
+                item.text && 
+                self.findIndex(t => t.element === item.element) === index
+            );
+            
+            uniqueElements.forEach((item, index) => {
+                const field = document.createElement('div');
+                field.className = 'edit-field';
+                
+                const label = document.createElement('label');
+                const displayTag = item.className ? `${item.tagName}.${item.className.split(' ')[0]}` : item.tagName;
+                label.textContent = `${displayTag} - ${item.text.substring(0, 40)}${item.text.length > 40 ? '...' : ''}`;
+                label.title = item.text;
+                
+                const textarea = document.createElement('textarea');
+                textarea.value = item.text;
+                textarea.dataset.elementIndex = index;
+                
+                const lineCount = Math.max(2, Math.ceil(item.text.length / 40));
+                textarea.style.minHeight = `${lineCount * 25}px`;
+                
+                textarea.oninput = function() {
+                    item.element.textContent = this.value;
+                    isModified = true;
+                    updateUI();
+                };
+                
+                field.appendChild(label);
+                field.appendChild(textarea);
+                editPanelContent.appendChild(field);
+            });
+            
+            if (uniqueElements.length === 0) {
+                editPanelContent.innerHTML = '<p style="color: #666;">編集可能なテキストが見つかりません</p>';
+            } else {
+                const countInfo = document.createElement('div');
+                countInfo.style.cssText = 'padding: 10px; background: #f0f0f0; margin-bottom: 15px; border-radius: 4px;';
+                countInfo.textContent = `${uniqueElements.length}個のテキスト要素が編集可能です`;
+                editPanelContent.insertBefore(countInfo, editPanelContent.firstChild);
+            }
+        }
+        
+        // 現在のスライドを再読み込み
+        function reloadCurrentSlide() {
+            if (currentSlide) {
+                if (isModified) {
+                    if (confirm('変更が保存されていません。再読み込みしますか？')) {
+                        loadSlide(currentSlide);
+                    }
+                } else {
+                    loadSlide(currentSlide);
+                }
+            }
+        }
+        
+        // UI更新
+        function updateUI() {
+            const saveBtn = document.getElementById('saveBtn');
+            const currentInfo = document.getElementById('currentSlideInfo');
+            
+            saveBtn.disabled = !isModified;
+            
+            if (currentSlide) {
+                currentInfo.textContent = currentSlide + (isModified ? ' (変更あり)' : '');
+            } else {
+                currentInfo.textContent = 'スライドを選択してください';
+            }
+            
+            document.querySelectorAll('.slide-item').forEach(item => {
+                const span = item.querySelector('span');
+                if (span && span.textContent === currentSlide) {
+                    item.classList.toggle('modified', isModified);
+                }
+            });
+        }
+        
+        // レイアウト編集モード切り替え
+        function toggleLayoutMode() {
+            if (!currentSlide) {
+                showToast('先にスライドを選択してください', 'error');
+                return;
+            }
+            
+            layoutMode = !layoutMode;
+            const layoutBtn = document.getElementById('layoutModeBtn');
+            const previewContainer = document.getElementById('previewContainer');
+            
+            if (layoutMode) {
+                if (editMode) {
+                    toggleEditMode();
+                }
+                
+                layoutBtn.classList.add('active');
+                layoutBtn.textContent = '🎨 レイアウト編集終了';
+                previewContainer.classList.add('show-grid');
+                document.body.classList.add('layout-mode');
+                
+                setupLayoutListeners();
+                showToast('要素をクリックして選択、ドラッグで移動、矢印キーで微調整', 'success', 3000);
+            } else {
+                layoutBtn.classList.remove('active');
+                layoutBtn.textContent = '🎨 レイアウト編集';
+                previewContainer.classList.remove('show-grid');
+                document.body.classList.remove('layout-mode');
+                
+                removeLayoutListeners();
+            }
+            
+            // プレビュータブの表示制御
+            updatePreviewTabsVisibility();
+        }
+        
+        // レイアウト編集のイベントリスナー設定
+        function setupLayoutListeners() {
+            const previewFrame = document.getElementById('previewFrame');
+            const layoutOverlay = document.getElementById('layoutOverlay');
+            
+            try {
+                const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                
+                if (!previewDoc) {
+                    showToast('プレビューフレームにアクセスできません。', 'error');
+                    return;
+                }
+                
+                layoutOverlay.innerHTML = '';
+                
+                const selectableSelectors = [
+                    '.slide > *',
+                    'div:not(.slide)',
+                    'section', 'table', 'ul', 'ol', 'img', 
+                    'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                    '.content-area > *',
+                    '.main-content > *',
+                    '.table-section', '.info-section',
+                    '.result-box', '.explanation-box'
+                ];
+                
+                const selectableElements = previewDoc.querySelectorAll(selectableSelectors.join(', '));
+                
+                selectableElements.forEach((elem, index) => {
+                    createElementOverlay(elem, index, previewFrame, layoutOverlay);
+                });
+                
+                previewDoc.addEventListener('scroll', () => updateOverlayPositions(previewFrame, layoutOverlay));
+                previewFrame.contentWindow.addEventListener('resize', () => updateOverlayPositions(previewFrame, layoutOverlay));
+                
+                layoutOverlay.addEventListener('mousedown', handleOverlayMouseDown);
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+                document.addEventListener('keydown', handleKeyDown);
+                
+            } catch (error) {
+                console.error('レイアウトリスナーの設定エラー:', error);
+                showToast('レイアウト編集機能の初期化に失敗しました', 'error');
+            }
+        }
+
+        function createElementOverlay(elem, index, previewFrame, layoutOverlay) {
+            const coords = getElementCoordinates(elem, previewFrame);
+            
+            if (coords.width > 0 && coords.height > 0) {
+                const overlay = document.createElement('div');
+                overlay.className = 'element-overlay';
+                overlay.dataset.elementIndex = index;
+                
+                overlay.style.left = `${coords.left}px`;
+                overlay.style.top = `${coords.top}px`;
+                overlay.style.width = `${coords.width}px`;
+                overlay.style.height = `${coords.height}px`;
+                
+                const handles = ['nw', 'ne', 'sw', 'se'];
+                handles.forEach(handle => {
+                    const handleDiv = document.createElement('div');
+                    handleDiv.className = `resize-handle ${handle}`;
+                    overlay.appendChild(handleDiv);
+                });
+                
+                const posInfo = document.createElement('div');
+                posInfo.className = 'position-info';
+                posInfo.textContent = 'X: 0, Y: 0';
+                overlay.appendChild(posInfo);
+                
+                overlay.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    selectElementOverlay(this, elem);
+                });
+                
+                const previewDoc = previewFrame.contentDocument;
+                const style = previewDoc.defaultView.getComputedStyle(elem);
+                if (style.position === 'static') {
+                    elem.style.position = 'relative';
+                }
+                
+                overlay._targetElement = elem;
+                
+                layoutOverlay.appendChild(overlay);
+            }
+        }
+        
+        function selectElementOverlay(overlay, targetElement){
+            document.querySelectorAll('.element-overlay.selected')
+                    .forEach(el => el.classList.remove('selected'));
+
+            overlay.classList.add('selected');
+            selectedOverlay  = overlay;
+            selectedElement  = targetElement;
+
+            updatePositionInfo();
+        }
+        
+        function updateOverlayPositions(previewFrame, layoutOverlay) {
+            if (!layoutOverlay) layoutOverlay = document.getElementById('layoutOverlay');
+            if (!previewFrame) previewFrame = document.getElementById('previewFrame');
+            
+            const overlays = layoutOverlay.querySelectorAll('.element-overlay');
+            
+            overlays.forEach(overlay => {
+                const elem = overlay._targetElement;
+                if (elem) {
+                    const coords = getElementCoordinates(elem, previewFrame);
+                    overlay.style.left = `${coords.left}px`;
+                    overlay.style.top = `${coords.top}px`;
+                    overlay.style.width = `${coords.width}px`;
+                    overlay.style.height = `${coords.height}px`;
+                }
+            });
+        }
+
+        function getElementCoordinates(elem, previewFrame) {
+            const previewDoc = previewFrame.contentDocument;
+            const frameRect = previewFrame.getBoundingClientRect();
+            const elemRect = elem.getBoundingClientRect();
+            
+            const scrollTop = previewDoc.documentElement.scrollTop || previewDoc.body.scrollTop || 0;
+            const scrollLeft = previewDoc.documentElement.scrollLeft || previewDoc.body.scrollLeft || 0;
+            
+            const previewHeader = document.querySelector('.preview-header');
+            const headerHeight = previewHeader ? previewHeader.offsetHeight : 0;
+            
+            const left = elemRect.left;
+            const top = elemRect.top + headerHeight;
+            
+            return {
+                left: left,
+                top: top,
+                width: elemRect.width,
+                height: elemRect.height
+            };
+        }
+        
+        function handleOverlayMouseDown(e) {
+            const target = e.target;
+            
+            if (target.classList.contains('resize-handle')) {
+                isResizing = true;
+                resizeHandle = target;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                
+                const overlay = target.closest('.element-overlay');
+                if (overlay && overlay._targetElement) {
+                    selectedElement = overlay._targetElement;
+                    selectedOverlay = overlay;
+                    elementStartWidth = selectedElement.offsetWidth;
+                    elementStartHeight = selectedElement.offsetHeight;
+                    elementStartX = parseInt(selectedElement.style.left) || 0;
+                    elementStartY = parseInt(selectedElement.style.top) || 0;
+                }
+                e.preventDefault();
+            } else if (target.classList.contains('element-overlay')) {
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                
+                selectedElement = target._targetElement;
+                selectedOverlay = target;
+                elementStartX = parseInt(selectedElement.style.left) || 0;
+                elementStartY = parseInt(selectedElement.style.top) || 0;
+                
+                target.classList.add('dragging');
+                e.preventDefault();
+            }
+        }
+        
+        function removeLayoutListeners() {
+            const previewFrame = document.getElementById('previewFrame');
+            const layoutOverlay = document.getElementById('layoutOverlay');
+            
+            try {
+                const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                
+                if (previewDoc) {
+                    previewDoc.removeEventListener('scroll', updateOverlayPositions);
+                    previewFrame.contentWindow.removeEventListener('resize', updateOverlayPositions);
+                }
+                
+                layoutOverlay.innerHTML = '';
+                
+                layoutOverlay.removeEventListener('mousedown', handleOverlayMouseDown);
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                document.removeEventListener('keydown', handleKeyDown);
+                
+            } catch (error) {
+                console.error('レイアウトリスナーの削除エラー:', error);
+            }
+        }
+        
+        function updatePositionInfo() {
+            if (!selectedElement || !selectedOverlay) return;
+            
+            const info = selectedOverlay.querySelector('.position-info');
+            const style = selectedElement.style;
+            const left = parseInt(style.left) || 0;
+            const top = parseInt(style.top) || 0;
+            const width = selectedElement.offsetWidth;
+            const height = selectedElement.offsetHeight;
+            
+            info.textContent = `X: ${left}, Y: ${top} | W: ${width}, H: ${height}`;
+        }
+        
+        function handleMouseMove(e) {
+            if (!layoutMode || !selectedElement) return;
+            
+            if (isDragging) {
+                const deltaX = e.clientX - dragStartX;
+                const deltaY = e.clientY - dragStartY;
+                
+                selectedElement.style.left = `${elementStartX + deltaX}px`;
+                selectedElement.style.top = `${elementStartY + deltaY}px`;
+                
+                updateOverlayPositions();
+                updatePositionInfo();
+                isModified = true;
+                updateUI();
+            } else if (isResizing) {
+                const deltaX = e.clientX - dragStartX;
+                const deltaY = e.clientY - dragStartY;
+                
+                if (resizeHandle.classList.contains('se')) {
+                    selectedElement.style.width = `${elementStartWidth + deltaX}px`;
+                    selectedElement.style.height = `${elementStartHeight + deltaY}px`;
+                } else if (resizeHandle.classList.contains('sw')) {
+                    selectedElement.style.width = `${elementStartWidth - deltaX}px`;
+                    selectedElement.style.height = `${elementStartHeight + deltaY}px`;
+                    selectedElement.style.left = `${elementStartX + deltaX}px`;
+                } else if (resizeHandle.classList.contains('ne')) {
+                    selectedElement.style.width = `${elementStartWidth + deltaX}px`;
+                    selectedElement.style.height = `${elementStartHeight - deltaY}px`;
+                    selectedElement.style.top = `${elementStartY + deltaY}px`;
+                } else if (resizeHandle.classList.contains('nw')) {
+                    selectedElement.style.width = `${elementStartWidth - deltaX}px`;
+                    selectedElement.style.height = `${elementStartHeight - deltaY}px`;
+                    selectedElement.style.left = `${elementStartX + deltaX}px`;
+                    selectedElement.style.top = `${elementStartY + deltaY}px`;
+                }
+                
+                updateOverlayPositions();
+                updatePositionInfo();
+                isModified = true;
+                updateUI();
+            }
+        }
+        
+        function handleMouseUp(e) {
+            if (isDragging && selectedOverlay) {
+                selectedOverlay.classList.remove('dragging');
+            }
+            
+            isDragging = false;
+            isResizing = false;
+            resizeHandle = null;
+        }
+        
+        function handleKeyDown(e) {
+            if (!layoutMode || !selectedElement) return;
+            
+            const step = e.shiftKey ? 10 : 1;
+            let left = parseInt(selectedElement.style.left) || 0;
+            let top = parseInt(selectedElement.style.top) || 0;
+            let modified = false;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    selectedElement.style.left = `${left - step}px`;
+                    modified = true;
+                    break;
+                case 'ArrowRight':
+                    selectedElement.style.left = `${left + step}px`;
+                    modified = true;
+                    break;
+                case 'ArrowUp':
+                    selectedElement.style.top = `${top - step}px`;
+                    modified = true;
+                    break;
+                case 'ArrowDown':
+                    selectedElement.style.top = `${top + step}px`;
+                    modified = true;
+                    break;
+                case 'Delete':
+                case 'Backspace':
+                    selectedElement.style.left = '';
+                    selectedElement.style.top = '';
+                    selectedElement.style.width = '';
+                    selectedElement.style.height = '';
+                    modified = true;
+                    break;
+            }
+            
+            if (modified) {
+                e.preventDefault();
+                updateOverlayPositions();
+                updatePositionInfo();
+                isModified = true;
+                updateUI();
+            }
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+        
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+        
+        // モーダル外クリックで閉じる
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'newSlideModal') {
+                hideNewSlideModal();
+            }
+        });
+        
+        // 初期化実行
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

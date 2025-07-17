@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>なぜ同時実行制御が必要か？</title>
+    <style>
+        /* 基本スタイル設定 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+        
+        /* スライドコンテナ - 4:3比率 */
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        /* ヘッダー */
+        .slide-header {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4a7ba7;
+        }
+        
+        /* コンテンツエリア */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        
+        /* 例示セクション */
+        .example-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            border-left: 5px solid #4a7ba7;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon {
+            width: 30px;
+            height: 30px;
+            background: #4a7ba7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* 銀行口座の表示 */
+        .accounts-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .account-box {
+            background: white;
+            border: 2px solid #4a7ba7;
+            border-radius: 10px;
+            padding: 20px 40px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .account-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+        }
+        
+        .account-balance {
+            font-size: 32px;
+            color: #4a7ba7;
+            font-weight: bold;
+        }
+        
+        /* トランザクション説明 */
+        .transactions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .transaction-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            transition: transform 0.2s;
+        }
+        
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .transaction-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .transaction-label {
+            background: #4a7ba7;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 16px;
+        }
+        
+        .transaction-description {
+            font-size: 18px;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .code-snippet {
+            background: #f5f5f5;
+            border-left: 3px solid #4a7ba7;
+            padding: 10px 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        /* 問題説明 */
+        .problem-highlight {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .warning-icon {
+            font-size: 30px;
+            color: #ff9800;
+        }
+        
+        .problem-text {
+            font-size: 18px;
+            color: #333;
+        }
+        
+        /* フッター */
+        .slide-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 60px;
+            right: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">なぜ同時実行制御が必要か？</h2>
+        
+        <div class="content-area">
+            <div class="example-section">
+                <div class="section-title">
+                    <div class="icon">💰</div>
+                    銀行口座の例
+                </div>
+                
+                <div class="accounts-container">
+                    <div class="account-box">
+                        <div class="account-name">口座 A</div>
+                        <div class="account-balance">$100</div>
+                    </div>
+                    <div class="account-box">
+                        <div class="account-name">口座 B</div>
+                        <div class="account-balance">$200</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="transactions-grid">
+                <div class="transaction-card">
+                    <div class="transaction-title">
+                        <span class="transaction-label">T1</span>
+                        送金トランザクション
+                    </div>
+                    <div class="transaction-description">
+                        口座Bから口座Aへ$50を送金
+                    </div>
+                    <div class="code-snippet">
+                        B = B - 50<br>
+                        A = A + 50
+                    </div>
+                </div>
+                
+                <div class="transaction-card">
+                    <div class="transaction-title">
+                        <span class="transaction-label">T2</span>
+                        残高照会トランザクション
+                    </div>
+                    <div class="transaction-description">
+                        A + B の合計残高を表示
+                    </div>
+                    <div class="code-snippet">
+                        display(A + B)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="problem-highlight">
+                <div class="warning-icon">⚠️</div>
+                <div class="problem-text">
+                    <strong>問題：</strong>適切な制御なしに同時実行すると、不整合な状態を読み取る可能性がある
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">3</div>
+        </div>
+    </div>
+</body>
+</html>

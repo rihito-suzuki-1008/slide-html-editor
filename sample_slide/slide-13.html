@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ロック変換</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.5;
+            color: #333;
+            background: #fff;
+        }
+        
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .slide-header {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4a7ba7;
+        }
+        
+        .content-area {
+            flex: 1;
+            display: flex;
+            gap: 25px;
+        }
+        
+        .conversion-section {
+            flex: 1.3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .conversion-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .conversion-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .upgrade-card {
+            border-color: #ff9800;
+        }
+        
+        .downgrade-card {
+            border-color: #4CAF50;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .upgrade-icon {
+            background: #ff9800;
+        }
+        
+        .downgrade-icon {
+            background: #4CAF50;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        .conversion-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        
+        .lock-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .s-lock-badge {
+            background: #2196F3;
+        }
+        
+        .x-lock-badge {
+            background: #f44336;
+        }
+        
+        .arrow-symbol {
+            font-size: 24px;
+            color: #666;
+        }
+        
+        .rule-box {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 13px;
+            color: #555;
+        }
+        
+        .phase-restriction {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        
+        .phase-icon {
+            font-size: 16px;
+        }
+        
+        .example-section {
+            flex: 0.7;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .example-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+        }
+        
+        .schedule-table {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .table-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #1e3a5f;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .header-cell {
+            padding: 8px;
+            text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .header-cell:last-child {
+            border-right: none;
+        }
+        
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table-cell {
+            padding: 6px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border-right: 1px solid #eee;
+        }
+        
+        .table-cell:last-child {
+            border-right: none;
+        }
+        
+        .op-lock { color: #2196F3; font-weight: bold; }
+        .op-read { color: #673AB7; font-weight: bold; }
+        .op-upgrade { color: #ff9800; font-weight: bold; }
+        .op-unlock { color: #4CAF50; font-weight: bold; }
+        
+        .highlight-row {
+            background: #fff3cd;
+        }
+        
+        .explanation-box {
+            background: #e3f2fd;
+            border: 1px solid #2196F3;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        
+        .slide-footer {
+            position: absolute;
+            bottom: 15px;
+            left: 35px;
+            right: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">ロック変換（Lock Conversion）</h2>
+        
+        <div class="content-area">
+            <div class="conversion-section">
+                <div class="conversion-types">
+                    <div class="conversion-card upgrade-card">
+                        <div class="card-header">
+                            <div class="card-icon upgrade-icon">⬆</div>
+                            <div class="card-title">アップグレード</div>
+                        </div>
+                        <div class="conversion-arrow">
+                            <span class="lock-badge s-lock-badge">S-lock</span>
+                            <span class="arrow-symbol">→</span>
+                            <span class="lock-badge x-lock-badge">X-lock</span>
+                        </div>
+                        <div class="rule-box">
+                            共有ロックから排他ロックへの変換<br>
+                            読み取り後に更新が必要になった場合
+                        </div>
+                        <div class="phase-restriction">
+                            <span class="phase-icon">📈</span>
+                            <span><strong>成長フェーズのみ</strong>で許可</span>
+                        </div>
+                    </div>
+                    
+                    <div class="conversion-card downgrade-card">
+                        <div class="card-header">
+                            <div class="card-icon downgrade-icon">⬇</div>
+                            <div class="card-title">ダウングレード</div>
+                        </div>
+                        <div class="conversion-arrow">
+                            <span class="lock-badge x-lock-badge">X-lock</span>
+                            <span class="arrow-symbol">→</span>
+                            <span class="lock-badge s-lock-badge">S-lock</span>
+                        </div>
+                        <div class="rule-box">
+                            排他ロックから共有ロックへの変換<br>
+                            更新後、読み取りのみ許可する場合
+                        </div>
+                        <div class="phase-restriction">
+                            <span class="phase-icon">📉</span>
+                            <span><strong>収縮フェーズのみ</strong>で許可</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin-top: 10px;">
+                    <div style="font-size: 14px; font-weight: bold; color: #ff6f00; margin-bottom: 5px;">
+                        ⚠️ 重要な制約
+                    </div>
+                    <div style="font-size: 13px; color: #555;">
+                        ロック変換も2相ロックプロトコルに従う必要がある。<br>
+                        フェーズの制約により、デッドロックは依然として発生可能。
+                    </div>
+                </div>
+            </div>
+            
+            <div class="example-section">
+                <div class="example-title">Figure 18.9：ロック変換の例</div>
+                <div class="schedule-table">
+                    <div class="table-header">
+                        <div class="header-cell">T8</div>
+                        <div class="header-cell">T9</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-S(a1)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-lock">lock-S(a1)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-S(a2)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-lock">lock-S(a2)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-S(a3)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-S(a4)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-unlock">unlock(a1)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"></div>
+                        <div class="table-cell"><span class="op-unlock">unlock(a2)</span></div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell"><span class="op-lock">lock-S(an)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                    <div class="table-row highlight-row">
+                        <div class="table-cell"><span class="op-upgrade">upgrade(a1)</span></div>
+                        <div class="table-cell"></div>
+                    </div>
+                </div>
+                
+                <div class="explanation-box">
+                    <strong>利点：</strong>T8とT9が同時にa1とa2を読むことができ、同時実行性が向上。<br>
+                    T8は最後にa1を更新する必要があるときだけアップグレード。
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">13</div>
+        </div>
+    </div>
+</body>
+</html>

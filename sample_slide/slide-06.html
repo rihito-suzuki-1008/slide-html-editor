@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ロック互換性</title>
+    <style>
+        /* 基本スタイル設定 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+        
+        /* スライドコンテナ - 4:3比率 */
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        /* ヘッダー */
+        .slide-header {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a7ba7;
+        }
+        
+        /* コンテンツエリア */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            align-items: center;
+        }
+        
+        /* 互換性マトリックス */
+        .matrix-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        
+        .matrix-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .compatibility-matrix {
+            border-collapse: collapse;
+            font-size: 18px;
+            background: white;
+            overflow: hidden;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        
+        .compatibility-matrix th,
+        .compatibility-matrix td {
+            width: 100px;
+            height: 70px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            position: relative;
+        }
+        
+        .compatibility-matrix th {
+            background: #1e3a5f;
+            color: white;
+            font-weight: bold;
+            font-size: 22px;
+        }
+        
+        .header-corner {
+            background: #0d2138 !important;
+        }
+        
+        .row-header {
+            background: #1e3a5f !important;
+            color: white;
+            font-weight: bold;
+            font-size: 22px;
+        }
+        
+        .compatible {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        
+        .incompatible {
+            background: #ffebee;
+            color: #c62828;
+            font-weight: bold;
+        }
+        
+        .check-icon {
+            font-size: 32px;
+        }
+        
+        .cross-icon {
+            font-size: 32px;
+        }
+        
+        /* 説明セクション */
+        .explanation-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            width: 100%;
+            max-width: 850px;
+        }
+        
+        .explanation-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .result-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .compatible-icon {
+            background: #4CAF50;
+        }
+        
+        .incompatible-icon {
+            background: #f44336;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        .card-content {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+            flex: 1;
+        }
+        
+        .example-box {
+            background: #f5f5f5;
+            border-left: 3px solid #4a7ba7;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        /* フッター */
+        .slide-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">ロック互換性</h2>
+        
+        <div class="content-area">
+            <div class="matrix-container">
+                <div class="matrix-title">Figure 18.1 互換性行列</div>
+                <table class="compatibility-matrix">
+                    <thead>
+                        <tr>
+                            <th class="header-corner"></th>
+                            <th>S</th>
+                            <th>X</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="row-header">S</td>
+                            <td class="compatible">
+                                <span class="check-icon">✓</span><br>
+                                <small>true</small>
+                            </td>
+                            <td class="incompatible">
+                                <span class="cross-icon">✗</span><br>
+                                <small>false</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="row-header">X</td>
+                            <td class="incompatible">
+                                <span class="cross-icon">✗</span><br>
+                                <small>false</small>
+                            </td>
+                            <td class="incompatible">
+                                <span class="cross-icon">✗</span><br>
+                                <small>false</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="explanation-container">
+                <div class="explanation-card">
+                    <div class="card-header">
+                        <div class="result-icon compatible-icon">✓</div>
+                        <div class="card-title">互換性あり（Compatible）</div>
+                    </div>
+                    <div class="card-content">
+                        <strong>S-S（共有-共有）</strong><br>
+                        複数のトランザクションが同じデータ項目に対して同時に共有ロックを保持可能
+                        <div class="example-box">
+                            T1: lock-S(Q)<br>
+                            T2: lock-S(Q) ✓ OK
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="explanation-card">
+                    <div class="card-header">
+                        <div class="result-icon incompatible-icon">✗</div>
+                        <div class="card-title">互換性なし（Incompatible）</div>
+                    </div>
+                    <div class="card-content">
+                        <strong>S-X, X-S, X-X</strong><br>
+                        排他ロックが関わる場合、他のトランザクションは待機が必要
+                        <div class="example-box">
+                            T1: lock-X(Q)<br>
+                            T2: lock-S(Q) ✗ 待機
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">6</div>
+        </div>
+    </div>
+</body>
+</html>

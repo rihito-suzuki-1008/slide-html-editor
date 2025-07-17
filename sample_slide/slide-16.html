@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ツリープロトコルの長所短所</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.5;
+            color: #333;
+            background: #fff;
+        }
+        
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .slide-header {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a7ba7;
+        }
+        
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+        
+        .pros-section, .cons-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pros-section {
+            border: 3px solid #4CAF50;
+        }
+        
+        .cons-section {
+            border: 3px solid #f44336;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .section-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .pros-icon {
+            background: #4CAF50;
+        }
+        
+        .cons-icon {
+            background: #f44336;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e3a5f;
+        }
+        
+        .point-list {
+            list-style: none;
+            padding: 0;
+            flex: 1;
+        }
+        
+        .point-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .point-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .point-icon {
+            font-size: 18px;
+            margin-top: 2px;
+        }
+        
+        .pros-point-icon {
+            color: #4CAF50;
+        }
+        
+        .cons-point-icon {
+            color: #f44336;
+        }
+        
+        .point-content {
+            flex: 1;
+        }
+        
+        .point-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 4px;
+        }
+        
+        .point-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .example-highlight {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            padding: 8px 10px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #856404;
+        }
+        
+        .comparison-summary {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .summary-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+        }
+        
+        .summary-text {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        .slide-footer {
+            position: absolute;
+            bottom: 15px;
+            left: 35px;
+            right: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">ツリープロトコルの長所と短所</h2>
+        
+        <div class="content-area">
+            <div class="comparison-container">
+                <div class="pros-section">
+                    <div class="section-header">
+                        <div class="section-icon pros-icon">👍</div>
+                        <div class="section-title">長所</div>
+                    </div>
+                    <ul class="point-list">
+                        <li class="point-item">
+                            <span class="point-icon pros-point-icon">✓</span>
+                            <div class="point-content">
+                                <div class="point-title">デッドロックフリー</div>
+                                <div class="point-description">
+                                    ツリー構造に従うため、循環待機が発生しない
+                                </div>
+                            </div>
+                        </li>
+                        <li class="point-item">
+                            <span class="point-icon pros-point-icon">✓</span>
+                            <div class="point-content">
+                                <div class="point-title">早期アンロック可能</div>
+                                <div class="point-description">
+                                    2PLと異なり、いつでもロック解放できるため同時実行性が向上
+                                </div>
+                            </div>
+                        </li>
+                        <li class="point-item">
+                            <span class="point-icon pros-point-icon">✓</span>
+                            <div class="point-content">
+                                <div class="point-title">ロールバック不要</div>
+                                <div class="point-description">
+                                    デッドロックが発生しないため、ロールバックによる処理コストなし
+                                </div>
+                            </div>
+                        </li>
+                        <li class="point-item">
+                            <span class="point-icon pros-point-icon">✓</span>
+                            <div class="point-content">
+                                <div class="point-title">衝突直列化可能性保証</div>
+                                <div class="point-description">
+                                    正確性を犠牲にすることなく性能向上
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="cons-section">
+                    <div class="section-header">
+                        <div class="section-icon cons-icon">👎</div>
+                        <div class="section-title">短所</div>
+                    </div>
+                    <ul class="point-list">
+                        <li class="point-item">
+                            <span class="point-icon cons-point-icon">✗</span>
+                            <div class="point-content">
+                                <div class="point-title">不要なロックが必要</div>
+                                <div class="point-description">
+                                    アクセスしないノードもロックする必要がある場合がある
+                                </div>
+                                <div class="example-highlight">
+                                    例：AとJにアクセスする場合、B, D, Hもロック必要
+                                </div>
+                            </div>
+                        </li>
+                        <li class="point-item">
+                            <span class="point-icon cons-point-icon">✗</span>
+                            <div class="point-content">
+                                <div class="point-title">事前知識が必要</div>
+                                <div class="point-description">
+                                    どのデータ項目にアクセスするか事前に分からない場合、ルートからロック必要
+                                </div>
+                            </div>
+                        </li>
+                        <li class="point-item">
+                            <span class="point-icon cons-point-icon">✗</span>
+                            <div class="point-content">
+                                <div class="point-title">ルートがボトルネック</div>
+                                <div class="point-description">
+                                    多くのトランザクションがルートをロックすると同時実行性が大幅に低下
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="comparison-summary">
+                <div class="summary-title">使用場面の推奨</div>
+                <div class="summary-text">
+                    ツリープロトコルは、データベースが明確な階層構造を持ち、<br>
+                    トランザクションがアクセスパスを事前に把握できる場合に有効。<br>
+                    B+ツリーインデックスなどの実装で活用される。
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">16</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第18章 同時実行制御</title>
+    <!-- <style> を丸ごと置換 -->
+    <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.6;color:#333;background:#fff;}
+    /* ❶ 4:3 固定に変更 ── 1024×768px */
+    .slide{width:1024px;height:768px;padding:60px 80px;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;}
+    .slide-header,.slide-footer{display:none;}          /* タイトルなのでヘッダ/フッタ不要 */
+    .main-title{font-size:64px;font-weight:700;color:#1e3a5f;line-height:1.2;text-align:center;margin-bottom:24px;}
+    .subtitle{font-size:34px;color:#4a7ba7;margin-bottom:52px;text-align:center;}
+    .decorative-line{width:240px;height:4px;background:linear-gradient(90deg,#1e3a5f,#4a7ba7);margin:0 auto 40px;}
+    .presenter-info{font-size:22px;color:#666;text-align:center;}
+    .date{font-size:18px;color:#666;margin-top:4px;text-align:center;}
+    @media print{@page{margin:0;size:landscape}}
+    </style>
+
+</head>
+<body>
+    <!-- スライド1: タイトル -->
+    <div class="slide title-slide">
+        <div class="slide-content">
+            <h1 class="main-title">第18章<br>同時実行制御</h1>
+            <h2 class="subtitle">Concurrency Control</h2>
+            <div class="decorative-line"></div>
+            <div class="presenter-info">発表者：鈴木理寛</div>
+            
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">1</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ファントム現象</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.6;color:#333;background:#fff;}
+        /* --- Slide container (4:3, 1024×768) --- */
+        .slide{width:1024px;height:768px;padding:40px 50px 35px;position:relative;background:#fff;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 0 14px rgba(0,0,0,.08);}        
+        /* --- Header --- */
+        .slide-header{font-size:28px;font-weight:700;color:#163a5f;margin-bottom:28px;padding-bottom:10px;border-bottom:3px solid #2f6da0;}
+        /* --- Content area --- */
+        .content-area{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:flex-start;}
+        /* --- Example block --- */
+        .example-block{background:#f8f9fb;border-left:6px solid #4a90e2;border-radius:8px;padding:24px 24px 22px;box-shadow:0 2px 6px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:18px;}
+        .example-title{font-size:18px;font-weight:700;color:#1e3a5f;}
+        .sql-box{background:#fff;border:1px solid #ddd;border-radius:4px;padding:14px;font-family:'Menlo',monospace;font-size:14px;line-height:1.5;color:#c7254e;white-space:pre;overflow-x:auto;}
+        /* --- Info card --- */
+        .info-card{background:#fff;border-left:6px solid #4a90e2;border-radius:8px;padding:28px 26px 24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 2px 6px rgba(0,0,0,.06);}        
+        .card-title{font-size:20px;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:8px;}
+        .card-title .icon{font-size:22px;line-height:0;}
+        .bullet-list{margin-left:18px;list-style:disc;font-size:15px;color:#3d3d3d;line-height:1.8;}
+        /* --- Footer --- */
+        .slide-footer{position:absolute;bottom:16px;left:50px;right:50px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;}
+        .slide-number{font-weight:600;background:#1e3a5f;color:#fff;padding:4px 12px;border-radius:12px;}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">ファントム現象（Phantom&nbsp;Phenomenon）</h2>
+        <div class="content-area">
+            <!-- Example -->
+            <div class="example-block">
+                <div class="example-title">例：教員カウントに現れる“幻レコード”</div>
+                <div class="sql-box">-- T30: Physics 教員数をカウント
+SELECT COUNT(*)
+  FROM teachers
+ WHERE dept = 'Physics';  -- → 10 名
+
+-- 同時に T31 が挿入
+INSERT INTO teachers(id, name, dept)
+VALUES (501, 'Dr. Higgs', 'Physics');
+
+-- T30 が再度カウント
+SELECT COUNT(*)
+  FROM teachers
+ WHERE dept = 'Physics';  -- → 11 名 (値が変化)</div>
+            </div>
+            <!-- Explanation Card -->
+            <div class="info-card">
+                <div class="card-title"><span class="icon">👻</span>発生理由 & 対策</div>
+                <ul class="bullet-list">
+                    <li><strong>範囲述語</strong> が対象行セットを決定 ➜ 新規行で <em>幻</em> が出現</li>
+                    <li>行ロックのみでは防げず、<strong>ギャップ / 次キー</strong> ロックが必要</li>
+                    <li><code>Serializable</code> や <strong>SSI</strong> で <em>範囲ロック</em> を確保</li>
+                    <li>アプリ層対策：<code>SELECT ... FOR UPDATE</code> + インデックス活用</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">23</div>
+        </div>
+    </div>
+</body>
+</html>

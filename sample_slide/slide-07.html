@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基本的なロック操作</title>
+    <style>
+        /* 基本スタイル設定 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            line-height: 1.5;
+            color: #333;
+            background: #fff;
+        }
+        
+        /* スライドコンテナ - 4:3比率 */
+        .slide {
+            width: 1024px;
+            height: 768px;
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        /* ヘッダー */
+        .slide-header {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4a7ba7;
+        }
+        
+        /* コンテンツエリア */
+        .content-area {
+            flex: 1;
+            display: flex;
+            gap: 25px;
+            height: calc(100% - 80px);
+        }
+        
+        /* トランザクションコード */
+        .transactions-section {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .transaction-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .transaction-card:hover {
+            border-color: #4a7ba7;
+        }
+        
+        .transaction-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .transaction-label {
+            background: #1e3a5f;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .transaction-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .code-block {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            flex: 1;
+        }
+        
+        /* 操作の色分け */
+        .op-lock-x { color: #f44336; font-weight: bold; }
+        .op-lock-s { color: #2196F3; font-weight: bold; }
+        .op-read { color: #673AB7; font-weight: bold; }
+        .op-write { color: #FF5722; font-weight: bold; }
+        .op-unlock { color: #4CAF50; font-weight: bold; }
+        .op-display { color: #009688; font-weight: bold; }
+        
+        /* 実行フロー */
+        .flow-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .flow-container {
+            flex: 1;
+        }
+        
+        .flow-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a5f;
+            margin-bottom: 8px;
+        }
+        
+        .flow-diagram {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            height: 100%;
+        }
+        
+        .flow-step {
+            background: #f5f5f5;
+            border-left: 3px solid #4a7ba7;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .step-number {
+            background: #4a7ba7;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .step-text {
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .arrow {
+            text-align: center;
+            color: #4a7ba7;
+            font-size: 16px;
+            margin: 3px 0;
+        }
+        
+        /* 重要な注意点 */
+        .important-note {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: auto;
+        }
+        
+        .warning-icon {
+            font-size: 20px;
+            color: #ff9800;
+            flex-shrink: 0;
+        }
+        
+        .note-text {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        /* フッター */
+        .slide-footer {
+            position: absolute;
+            bottom: 15px;
+            left: 35px;
+            right: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .slide-number {
+            font-weight: bold;
+            background: #1e3a5f;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">基本的なロック操作</h2>
+        
+        <div class="content-area">
+            <div class="transactions-section">
+                <div class="transaction-card">
+                    <div class="transaction-header">
+                        <span class="transaction-label">T1</span>
+                        <span class="transaction-title">送金トランザクション</span>
+                    </div>
+                    <div class="code-block">
+                        <span class="op-lock-x">lock-X(B);</span><br>
+                        <span class="op-read">read(B);</span><br>
+                        B := B - 50;<br>
+                        <span class="op-write">write(B);</span><br>
+                        <span class="op-unlock">unlock(B);</span><br>
+                        <span class="op-lock-x">lock-X(A);</span><br>
+                        <span class="op-read">read(A);</span><br>
+                        A := A + 50;<br>
+                        <span class="op-write">write(A);</span><br>
+                        <span class="op-unlock">unlock(A);</span>
+                    </div>
+                </div>
+                
+                <div class="transaction-card">
+                    <div class="transaction-header">
+                        <span class="transaction-label">T2</span>
+                        <span class="transaction-title">残高照会トランザクション</span>
+                    </div>
+                    <div class="code-block">
+                        <span class="op-lock-s">lock-S(A);</span><br>
+                        <span class="op-read">read(A);</span><br>
+                        <span class="op-unlock">unlock(A);</span><br>
+                        <span class="op-lock-s">lock-S(B);</span><br>
+                        <span class="op-read">read(B);</span><br>
+                        <span class="op-unlock">unlock(B);</span><br>
+                        <span class="op-display">display(A + B);</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-section">
+                <div class="flow-container">
+                    <div class="flow-title">ロック操作の基本フロー</div>
+                    <div class="flow-diagram">
+                        <div class="flow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-text">適切なロックモードでロック要求</div>
+                        </div>
+                        <div class="arrow">↓</div>
+                        <div class="flow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-text">ロック取得まで待機（必要に応じて）</div>
+                        </div>
+                        <div class="arrow">↓</div>
+                        <div class="flow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-text">データ項目へのアクセス（読み/書き）</div>
+                        </div>
+                        <div class="arrow">↓</div>
+                        <div class="flow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-text">ロック解放</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="important-note">
+                    <span class="warning-icon">⚠️</span>
+                    <div class="note-text">
+                        <strong>重要：</strong>Figure 18.2, 18.3のコードは早期アンロックのため、<br>
+                        不整合を引き起こす可能性がある
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">7</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スライドエディター - プロジェクト選択</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* ヘッダー */
+        .header {
+            background: #1e3a5f;
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        /* メインコンテナ */
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            width: 100%;
+        }
+        
+        /* ツールバー */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .toolbar h2 {
+            font-size: 24px;
+            color: #333;
+        }
+        
+        .new-project-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .new-project-btn:hover {
+            background: #5cbf60;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        /* プロジェクトグリッド */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        /* プロジェクトカード */
+        .project-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4a7ba7, #1e3a5f);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        
+        .project-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .project-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .project-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1e3a5f;
+        }
+        
+        .project-info {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .slide-count {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 15px;
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* 空の状態 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: white;
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1e3a5f;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a7ba7;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .modal-footer button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .cancel-btn {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .cancel-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .create-btn {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .create-btn:hover {
+            background: #5cbf60;
+        }
+        
+        /* ローディング */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #666;
+        }
+        
+        /* トースト */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        
+        .toast.error {
+            background: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📑 スライドエディター</h1>
+        <p>プロジェクトを選択して編集を開始</p>
+    </div>
+    
+    <div class="container">
+        <div class="toolbar">
+            <h2>プロジェクト一覧</h2>
+            <button class="new-project-btn" onclick="showNewProjectModal()">
+                ➕ 新規プロジェクト
+            </button>
+        </div>
+        
+        <div id="projectGrid" class="project-grid">
+            <!-- プロジェクトカードがここに表示される -->
+        </div>
+        
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📁</div>
+            <h3>プロジェクトがありません</h3>
+            <p>新規プロジェクトを作成して始めましょう</p>
+        </div>
+    </div>
+    
+    <!-- 新規プロジェクトモーダル -->
+    <div id="newProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">新規プロジェクトの作成</div>
+            <div class="form-group">
+                <label for="projectName">プロジェクト名</label>
+                <input type="text" id="projectName" placeholder="例: 第18章_同時実行制御" autofocus>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="hideNewProjectModal()">キャンセル</button>
+                <button class="create-btn" onclick="createProject()">作成</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading" style="display: none;">読み込み中...</div>
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        // 初期化
+        async function init() {
+            await loadProjects();
+        }
+        
+        // プロジェクト一覧を読み込み
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${API_URL}/projects`);
+                const data = await response.json();
+                
+                const grid = document.getElementById('projectGrid');
+                const emptyState = document.getElementById('emptyState');
+                
+                if (data.projects.length === 0) {
+                    grid.style.display = 'none';
+                    emptyState.style.display = 'block';
+                } else {
+                    grid.style.display = 'grid';
+                    emptyState.style.display = 'none';
+                    
+                    grid.innerHTML = data.projects.map(project => `
+                        <div class="project-card" onclick="selectProject('${project.path}')">
+                            <div class="project-icon">📁</div>
+                            <div class="project-name">${project.name}</div>
+                            <div class="project-info">
+                                最終更新: ${new Date(project.lastModified).toLocaleDateString('ja-JP')}
+                            </div>
+                            <span class="slide-count">${project.slideCount} スライド</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                showToast('プロジェクトの読み込みに失敗しました', 'error');
+            }
+        }
+        
+        // プロジェクトを選択
+        async function selectProject(projectPath) {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}/projects/select`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ projectPath })
+                });
+                
+                if (response.ok) {
+                    // エディター画面に遷移
+                    window.location.href = '/editor/slide-editor.html';
+                } else {
+                    throw new Error('プロジェクトの選択に失敗しました');
+                }
+            } catch (error) {
+                showToast('プロジェクトの選択に失敗しました', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // 新規プロジェクトモーダルを表示
+        function showNewProjectModal() {
+            document.getElementById('newProjectModal').style.display = 'block';
+            document.getElementById('projectName').focus();
+        }
+        
+        // 新規プロジェクトモーダルを非表示
+        function hideNewProjectModal() {
+            document.getElementById('newProjectModal').style.display = 'none';
+            document.getElementById('projectName').value = '';
+        }
+        
+        // プロジェクトを作成
+        async function createProject() {
+            const projectName = document.getElementById('projectName').value.trim();
+            
+            if (!projectName) {
+                showToast('プロジェクト名を入力してください', 'error');
+                return;
+            }
+            
+            // 使用できない文字をチェック
+            if (!/^[a-zA-Z0-9_\-\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+$/.test(projectName)) {
+                showToast('プロジェクト名に使用できない文字が含まれています', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}/projects/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ projectName })
+                });
+                
+                if (response.ok) {
+                    hideNewProjectModal();
+                    await loadProjects();
+                    showToast('プロジェクトを作成しました');
+                } else {
+                    throw new Error('プロジェクトの作成に失敗しました');
+                }
+            } catch (error) {
+                showToast('プロジェクトの作成に失敗しました', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // ローディング表示
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        // トースト通知
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${type === 'error' ? 'error' : ''}`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Enterキーでプロジェクト作成
+        document.getElementById('projectName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                createProject();
+            }
+        });
+        
+        // モーダル外クリックで閉じる
+        document.getElementById('newProjectModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                hideNewProjectModal();
+            }
+        });
+        
+        // 初期化実行
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デッドロック検出</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.5;color:#333;background:#fff;}
+        /* --- Slide container (4:3, 1024×768) --- */
+        .slide{width:1024px;height:768px;padding:35px;position:relative;overflow:hidden;background:#fff;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 0 20px rgba(0,0,0,.1);}
+        /* --- Header --- */
+        .slide-header{font-size:26px;font-weight:bold;color:#1e3a5f;margin-bottom:20px;padding-bottom:8px;border-bottom:2px solid #4a7ba7;}
+        /* --- Content area --- */
+        .content-area{flex:1;display:flex;gap:25px;}
+        /* --- Graph section --- */
+        .graph-section{flex:1;background:#f8f9fa;border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:20px;}
+        .section-title{font-size:18px;font-weight:bold;color:#1e3a5f;text-align:center;}
+        .graph-box{flex:1;background:#fff;border:2px solid #e0e0e0;border-radius:8px;padding:15px;display:flex;flex-direction:column;gap:10px;}
+        .graph-label{font-size:14px;font-weight:bold;color:#666;text-align:center;}
+        .graph-svg{flex:1;width:100%;}
+        .node{fill:#4a7ba7;stroke:#1e3a5f;stroke-width:2;}
+        .node-text{fill:#fff;font-weight:bold;font-size:14px;text-anchor:middle;dominant-baseline:central;}
+        .edge{stroke:#f44336;stroke-width:2;marker-end:url(#arrow);}
+        /* --- Explanation --- */
+        .explanation-section{flex:1;display:flex;flex-direction:column;gap:20px;}
+        .explain-card{background:#fff3cd;border:2px solid #ffc107;border-radius:8px;padding:20px;font-size:14px;line-height:1.6;color:#555;display:flex;flex-direction:column;gap:10px;}
+        .card-header{display:flex;align-items:center;gap:10px;font-weight:bold;color:#1e3a5f;font-size:16px;}
+        .check-icon{color:#4caf50;font-size:18px;}
+        .alert-icon{color:#f44336;font-size:18px;}
+        /* --- Footer --- */
+        .slide-footer{position:absolute;bottom:15px;left:35px;right:35px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;}
+        .slide-number{font-weight:bold;background:#1e3a5f;color:#fff;padding:3px 10px;border-radius:12px;}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">デッドロック検出</h2>
+        <div class="content-area">
+            <!-- Graphs -->
+            <div class="graph-section">
+                <div class="section-title">待機グラフ（Wait‑For Graph）</div>
+                <div class="graph-box">
+                    <div class="graph-label">Figure 18.13：サイクルなし（デッドロックなし）</div>
+                    <svg class="graph-svg" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <marker id="arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L6,3 L0,6 Z" fill="#f44336" />
+                            </marker>
+                        </defs>
+                        <!-- Nodes -->
+                        <circle class="node" cx="70" cy="75" r="25" />
+                        <text class="node-text" x="70" y="75">T18</text>
+                        <circle class="node" cx="230" cy="40" r="25" />
+                        <text class="node-text" x="230" y="40">T17</text>
+                        <circle class="node" cx="230" cy="110" r="25" />
+                        <text class="node-text" x="230" y="110">T19</text>
+                        <!-- Edges -->
+                        <line class="edge" x1="95" y1="70" x2="200" y2="45" />
+                        <line class="edge" x1="95" y1="80" x2="200" y2="105" />
+                        <line class="edge" x1="205" y1="105" x2="95" y2="82" />
+                    </svg>
+                </div>
+                <div class="graph-box">
+                    <div class="graph-label">Figure 18.14：サイクルあり → デッドロック発生</div>
+                    <svg class="graph-svg" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid meet">
+                        <!-- Redefine marker for cycle edges -->
+                        <defs>
+                            <marker id="arrow2" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L6,3 L0,6 Z" fill="#f44336" />
+                            </marker>
+                        </defs>
+                        <!-- Nodes -->
+                        <circle class="node" cx="70" cy="75" r="25" />
+                        <text class="node-text" x="70" y="75">T18</text>
+                        <circle class="node" cx="230" cy="40" r="25" />
+                        <text class="node-text" x="230" y="40">T20</text>
+                        <circle class="node" cx="230" cy="110" r="25" />
+                        <text class="node-text" x="230" y="110">T19</text>
+                        <!-- Cycle edges -->
+                        <line class="edge" marker-end="url(#arrow2)" x1="95" y1="70" x2="200" y2="45" />
+                        <line class="edge" marker-end="url(#arrow2)" x1="255" y1="50" x2="255" y2="100" />
+                        <line class="edge" marker-end="url(#arrow2)" x1="205" y1="105" x2="95" y2="80" />
+                    </svg>
+                </div>
+            </div>
+            <!-- Explanation -->
+            <div class="explanation-section">
+                <div class="explain-card">
+                    <div class="card-header"><span class="check-icon">✓</span> デッドロック検出の流れ</div>
+                    <ul style="margin-left:15px;list-style:disc;">
+                        <li>各ロック待機を <strong>待機グラフ</strong> として表現</li>
+                        <li>一定間隔で <em>サイクル検出アルゴリズム</em> を実行</li>
+                        <li>サイクル発見 ⇒ 関連トランザクションはデッドロック状態</li>
+                    </ul>
+                </div>
+                <div class="explain-card">
+                    <div class="card-header"><span class="alert-icon">⚠️</span> 検出後の回復</div>
+                    <ul style="margin-left:15px;list-style:disc;">
+                        <li><strong>犠牲者選択</strong>：ロールバックコストが最小のTxを中止</li>
+                        <li>部分ロールバック or 全体ロールバック</li>
+                        <li>頻発時は <code>Wait‑Die</code> / <code>Wound‑Wait</code> など防止策も検討</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">17</div>
+        </div>
+    </div>
+</body>
+</html>

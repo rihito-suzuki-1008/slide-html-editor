@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>複数粒度プロトコルの例</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;line-height:1.6;color:#333;background:#fff;}
+        /* --- Slide container (4:3, 1024×768) --- */
+        .slide{width:1024px;height:768px;padding:40px 50px 35px;position:relative;background:#fff;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 0 14px rgba(0,0,0,.08);}        
+        /* --- Header --- */
+        .slide-header{font-size:28px;font-weight:700;color:#163a5f;margin-bottom:28px;padding-bottom:10px;border-bottom:3px solid #2f6da0;}
+        /* --- Content area --- */
+        .content-area{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:flex-start;}
+        /* --- Table style --- */
+        table{width:100%;border-collapse:collapse;font-size:14px;}
+        th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;}
+        th{background:#f1f5fb;font-weight:700;color:#1e3a5f;}
+        caption{caption-side:top;font-size:16px;font-weight:700;margin-bottom:10px;color:#1e3a5f;}
+        /* --- Info card --- */
+        .info-card{background:#fff;border-left:6px solid #4a90e2;border-radius:8px;padding:28px 26px 24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 2px 6px rgba(0,0,0,.06);}        
+        .card-title{font-size:20px;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:8px;}
+        .card-title .icon{font-size:22px;line-height:0;}
+        .bullet-list{margin-left:18px;list-style:disc;font-size:15px;color:#3d3d3d;line-height:1.8;}
+        /* --- Footer --- */
+        .slide-footer{position:absolute;bottom:16px;left:50px;right:50px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;}
+        .slide-number{font-weight:600;background:#1e3a5f;color:#fff;padding:4px 12px;border-radius:12px;}
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <h2 class="slide-header">複数粒度ロック：プロトコルの実行例</h2>
+        <div class="content-area">
+            <!-- Execution tables -->
+            <div>
+                <table>
+                    <caption>T21：レコード ra2 読み取り</caption>
+                    <thead>
+                        <tr><th>ステップ</th><th>操作</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>①</td><td>lock-IS(Database)</td></tr>
+                        <tr><td>②</td><td>lock-IS(Area&nbsp;A)</td></tr>
+                        <tr><td>③</td><td>lock-IS(File&nbsp;a1)</td></tr>
+                        <tr><td>④</td><td>lock-S(Record&nbsp;ra2)</td></tr>
+                        <tr><td>⑤</td><td>unlock&nbsp;Record&nbsp;ra2</td></tr>
+                        <tr><td>⑥</td><td>unlock&nbsp;File&nbsp;a1</td></tr>
+                        <tr><td>⑦</td><td>unlock&nbsp;Area&nbsp;A</td></tr>
+                        <tr><td>⑧</td><td>unlock&nbsp;Database</td></tr>
+                    </tbody>
+                </table>
+                <br/>
+                <table>
+                    <caption>T24：DB 全体読み取り</caption>
+                    <thead>
+                        <tr><th>ステップ</th><th>操作</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>①</td><td>lock-S(Database)</td></tr>
+                        <tr><td>②</td><td>— データ読み取り —</td></tr>
+                        <tr><td>③</td><td>unlock&nbsp;Database</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Explanation Card -->
+            <div class="info-card">
+                <div class="card-title"><span class="icon">⚙️</span>プロトコルのポイント</div>
+                <ul class="bullet-list">
+                    <li>各レベルで <strong>意図ロック</strong> を先に取得 ➜ 上位衝突を防止</li>
+                    <li>細粒度 (Record) をロックしても <em>不要なブロック</em> を回避</li>
+                    <li>広範囲読み取り (T24) は <strong>Sロック</strong>1回で効率化</li>
+                    <li>階層解除は <em>下位 ➜ 上位</em> の順で実行</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div></div>
+            <div class="slide-number">22</div>
+        </div>
+    </div>
+</body>
+</html>
